@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Km7 cafe - Gestión</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root { --km7: #1a1a1a; --gold: #c5a059; }
+        body { background: #f4f7f6; padding-bottom: 100px; font-family: 'Segoe UI', sans-serif; }
+        .nav-bottom { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0; z-index: 1050; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .nav-item { text-align: center; color: #aaa; background: none; border: none; flex: 1; font-size: 0.75rem; }
+        .nav-item.active { color: var(--km7); font-weight: bold; }
+        .nav-item i { font-size: 1.5rem; display: block; }
+        .view-section { display: none; }
+        .active-section { display: block; }
+        .card-custom { border-radius: 16px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.04); background: #fff; padding: 16px; margin-bottom: 12px; position: relative; cursor: pointer; }
+        .btn-rayo { background: #ffc107; border: none; border-radius: 12px; width: 38px; height: 38px; color: #000; margin-right: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .btn-km7 { background: var(--km7); color: #fff; border-radius: 12px; border: none; font-weight: 500; }
+        .loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); display:none; justify-content:center; align-items:center; z-index:3000; }
+        .badge-km7 { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 600; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div id="loader" class="loader"><div class="spinner-border text-dark"></div></div>
+
+<div class="container mt-3">
+    <div id="sec-venta" class="view-section active-section">
+        <h5 class="fw-bold mb-3">Nueva Venta</h5>
+        <div class="card-custom" style="cursor:default;">
+            <select id="clienteSel" class="form-select mb-2" onchange="cambioCliente()"></select>
+            <div id="canalDiv" class="mb-2" style="display:none;">
+                <select id="canalVenta" class="form-select border-primary"><option>WhatsApp</option><option>Directo</option><option>Tienda Nube</option><option>Instagram</option></select>
+            </div>
+            <div id="descAviso" class="small text-success fw-bold mb-2" style="display:none;"></div>
+            <div class="row g-2 mb-2">
+                <div class="col-6"><select id="metodoVenta" class="form-select"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
+                <div class="col-6"><select id="pagoVenta" class="form-select"><option value="Pagado">Pagado</option><option value="Pendiente">Pendiente</option></select></div>
+            </div>
+            <input type="text" id="notaVenta" class="form-control mb-3" placeholder="Nota de venta...">
+            <div class="d-flex gap-2">
+                <select id="prodSel" class="form-select"></select>
+                <input type="number" id="cant" class="form-control w-25 text-center" value="1">
+                <button class="btn btn-km7" onclick="addItem()"><i class="bi bi-plus-lg"></i></button>
+            </div>
+        </div>
+        <div id="listaCarrito"></div>
+        <div class="card-custom d-flex justify-content-between align-items-center mt-2 p-3">
+            <h3 class="m-0 fw-bold">$<span id="totalVenta">0</span></h3>
+            <button class="btn btn-km7 btn-lg px-4" onclick="saveVenta()">REGISTRAR</button>
+        </div>
+    </div>
+
+    <div id="sec-clientes" class="view-section">
+        <h5 class="fw-bold mb-3">Mis Clientes</h5>
+        <div id="listaClientes"></div>
+    </div>
+
+    <div id="sec-historial" class="view-section">
+        <h5 class="fw-bold mb-3">Historial</h5>
+        <div id="contenedorHistorial"></div>
+    </div>
+
+    <div id="sec-caja" class="view-section">
+        <h5 class="fw-bold mb-3">Caja Km7</h5>
+        <div class="row g-2 mb-3">
+            <div class="col-6"><div class="card-custom bg-dark text-white text-center p-3" style="cursor:default;"><small>SALDO</small><h4 id="cajaSaldo" class="m-0">$0</h4></div></div>
+            <div class="col-6" onclick="abrirModDeudas()"><div class="card-custom bg-warning text-center p-3"><small>DEUDAS (Ver)</small><h4 id="cajaPendiente" class="m-0">$0</h4></div></div>
+        </div>
+        <div id="listaMovCaja"></div>
+    </div>
+
+    <div id="sec-crm" class="view-section">
+        <h5 class="fw-bold mb-3">CRM Prospectos</h5>
+        <div id="listaCRM"></div>
+    </div>
+</div>
+
+<nav class="nav-bottom">
+    <button class="nav-item active" onclick="verSeccion('sec-venta', this)"><i class="bi bi-bag-plus"></i>Venta</button>
+    <button class="nav-item" onclick="verSeccion('sec-clientes', this); loadClientes();"><i class="bi bi-people"></i>Clientes</button>
+    <button class="nav-item" onclick="verSeccion('sec-historial', this); loadHist();"><i class="bi bi-receipt"></i>Lista</button>
+    <button class="nav-item" onclick="verSeccion('sec-crm', this); loadCRM();"><i class="bi bi-lightning-charge"></i>CRM</button>
+    <button class="nav-item" onclick="verSeccion('sec-caja', this); loadCaja();"><i class="bi bi-bank"></i>Caja</button>
+</nav>
+
+<div class="modal fade" id="modCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
+    <h5 class="fw-bold mb-3">Editar Cliente</h5>
+    <input type="hidden" id="clieId">
+    <div class="mb-2"><label class="small fw-bold">Nombre</label><input type="text" id="clieNom" class="form-control"></div>
+    <div class="row g-2 mb-2">
+        <div class="col-6"><label class="small fw-bold">WhatsApp</label><input type="text" id="clieTel" class="form-control"></div>
+        <div class="col-6"><label class="small fw-bold">Categoría</label><select id="clieCat" class="form-select"><option>Minorista</option><option>Mayorista</option><option>VIP</option></select></div>
+    </div>
+    <div class="mb-2"><label class="small fw-bold">Email</label><input type="text" id="clieMail" class="form-control"></div>
+    <div class="mb-2"><label class="small fw-bold">Dirección</label><input type="text" id="clieDir" class="form-control"></div>
+    <div class="mb-3"><label class="small fw-bold">Descuento Fijo (%)</label><input type="number" id="clieDesc" class="form-control border-success"></div>
+    <button class="btn btn-km7 w-100" onclick="saveCliente()">GUARDAR CAMBIOS</button>
+</div></div></div>
+
+<div class="modal fade" id="modEditTotal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content p-4 rounded-4 border-0">
+    <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="fw-bold m-0">Editar Venta</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <input type="hidden" id="eId">
+    <div class="row g-2 mb-3">
+        <div class="col-6"><label class="small fw-bold">Pago</label><select id="ePago" class="form-select"><option>Pagado</option><option>Pendiente</option></select></div>
+        <div class="col-6"><label class="small fw-bold">Entrega</label><select id="eEntrega" class="form-select"><option>Entregado</option><option>Pendiente</option></select></div>
+    </div>
+    <div class="mb-3"><label class="small fw-bold">Método</label><select id="eMetodo" class="form-select"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
+    <div class="mb-3"><label class="small fw-bold">Nota</label><input type="text" id="eNota" class="form-control"></div>
+    <hr>
+    <div id="editItemsArea" class="mb-3"></div>
+    <div class="d-flex gap-2 mb-3">
+        <select id="eProdSel" class="form-select form-select-sm"></select>
+        <button class="btn btn-sm btn-dark" onclick="addItemToEdit()">+</button>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="m-0 fw-bold">Total: $<span id="eTotal">0</span></h4>
+        <button class="btn btn-km7 px-4" onclick="saveEditTotal()">GUARDAR</button>
+    </div>
+    <button class="btn btn-outline-danger btn-sm w-100" onclick="deleteVenta()">ELIMINAR VENTA COMPLETA</button>
+</div></div></div>
+
+<div class="modal fade" id="modQuick" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
+    <h5 class="fw-bold mb-3 text-center">Acción Rápida</h5>
+    <input type="hidden" id="qId"><input type="hidden" id="qOri">
+    <div class="mb-3"><label class="small fw-bold">Método</label><select id="qMetodo" class="form-select"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
+    <div class="row g-2 mb-3">
+        <div class="col-6"><label class="small fw-bold">Pago</label><select id="qPago" class="form-select"><option>Pagado</option><option>Pendiente</option></select></div>
+        <div class="col-6"><label class="small fw-bold">Entrega</label><select id="qEntrega" class="form-select"><option>Entregado</option><option>Pendiente</option></select></div>
+    </div>
+    <div class="mb-3"><label class="small fw-bold">Desc % Extra</label><input type="number" id="qDesc" class="form-control" oninput="recalcQ()"></div>
+    <h4 class="text-center fw-bold mb-3">Total: $<span id="qTotalTxt">0</span></h4>
+    <button class="btn btn-success w-100 mb-2 py-2" onclick="prepararWS()"><i class="bi bi-whatsapp"></i> Compartir Ticket Full</button>
+    <button class="btn btn-km7 w-100" onclick="saveQuick()">ACTUALIZAR DATOS</button>
+</div></div></div>
+
+<div class="modal fade" id="modCRM" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
+    <h5 id="crmNombre" class="fw-bold mb-3"></h5>
+    <input type="hidden" id="crmId">
+    <textarea id="crmNota" class="form-control mb-3" placeholder="Registrar gestión o nota..."></textarea>
+    <button class="btn btn-km7 w-100 mb-3" onclick="saveCRM()">Guardar Acción</button>
+    <div id="crmHistorial" class="small" style="max-height:200px; overflow-y:auto;"></div>
+</div></div></div>
+
+<div class="modal fade" id="modDeudas" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
+    <h5 class="fw-bold mb-3">Deudas Pendientes</h5>
+    <div id="listaDeudasBody" style="max-height:300px; overflow-y:auto;"></div>
+    <button class="btn btn-secondary w-100 mt-3" data-bs-dismiss="modal">Cerrar</button>
+</div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // *******************************************************************
+    // REEMPLAZA ESTA URL POR TU LINK DE GOOGLE APPS SCRIPT:
+    const API_URL = 'PEGAR_ACA_TU_LINK_DE_APPS_SCRIPT'; 
+    // *******************************************************************
+
+    let pData=[], cData=[], hLocal=[], carrito=[], editCarrito=[], deudasLocal=[];
+    let loader, mQuick, mEdit, mDeudas, mClie, mCRM;
+
+    window.onload = () => {
+        loader = document.getElementById('loader');
+        mQuick = new bootstrap.Modal(document.getElementById('modQuick'));
+        mEdit = new bootstrap.Modal(document.getElementById('modEditTotal'));
+        mDeudas = new bootstrap.Modal(document.getElementById('modDeudas'));
+        mClie = new bootstrap.Modal(document.getElementById('modCliente'));
+        mCRM = new bootstrap.Modal(document.getElementById('modCRM'));
+        refresh();
+    };
+
+    function showLoader(v) { loader.style.display = v ? 'flex' : 'none'; }
+    function cleanNum(v) {
+        if(!v) return 0;
+        let s = v.toString().replace(/\$/g,'').replace(/\s/g,'');
+        if (s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
+        else s = s.replace(/\./g, '').replace(',', '.');
+        return parseFloat(s) || 0;
+    }
+
+    // FUNCIÓN PARA HABLAR CON EL MOTOR API
+    async function callAPI(action, method = 'GET', body = null) {
+        showLoader(true);
+        try {
+            let url = `${API_URL}?action=${action}`;
+            let options = { method: method };
+            if (method === 'POST') {
+                options.body = JSON.stringify({ action: action, ...body });
+            }
+            const res = await fetch(url, options);
+            const data = await res.json();
+            showLoader(false);
+            return data;
+        } catch (e) {
+            console.error(e);
+            showLoader(false);
+            alert("Error de conexión");
+        }
+    }
+
+    async function refresh() {
+        const d = await callAPI('getFormData');
+        pData=d.productos; cData=d.clientes;
+        document.getElementById('prodSel').innerHTML = d.productos.map(p => `<option value="${p[0]}">${p[1]}</option>`).join('');
+        document.getElementById('eProdSel').innerHTML = document.getElementById('prodSel').innerHTML;
+        document.getElementById('clienteSel').innerHTML = '<option value="CLI-001" data-desc="0">Consumidor Final</option>' + d.clientes.map(c => `<option value="${c[0]}" data-desc="${c[6]}">${c[1]}</option>`).join('');
+    }
+
+    function verSeccion(id, el) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section'));
+        document.getElementById(id).classList.add('active-section');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    // --- LÓGICA DE VENTAS ---
+    function cambioCliente() {
+        const sel = document.getElementById('clienteSel');
+        const desc = parseFloat(sel.options[sel.selectedIndex].getAttribute('data-desc') || 0);
+        document.getElementById('canalDiv').style.display = (sel.value === "CLI-001") ? 'block' : 'none';
+        document.getElementById('descAviso').style.display = desc > 0 ? 'block' : 'none';
+        document.getElementById('descAviso').innerText = `✅ Desc. Fijo ${desc}% aplicado`;
+        renderCar();
+    }
+
+    function addItem() {
+        let p = pData.find(x => x[0] == document.getElementById('prodSel').value);
+        let idClie = document.getElementById('clienteSel').value;
+        let clie = cData.find(x => x[0] == idClie);
+        let cant = parseFloat(document.getElementById('cant').value);
+        let precio = (idClie !== "CLI-001" && clie && clie[5] === "Mayorista") ? cleanNum(p[6]) : cleanNum(p[5]);
+        carrito.push({idProd: p[0], nombre: p[1], cant: cant, precio: precio, subtotal: precio * cant});
+        renderCar();
+    }
+
+    function renderCar() {
+        let h='', t=0;
+        const sel = document.getElementById('clienteSel');
+        const dFijo = parseFloat(sel.options[sel.selectedIndex].getAttribute('data-desc') || 0);
+        carrito.forEach((i, idx) => { t += i.subtotal; h += `<div class="card-custom p-2 mb-1 d-flex justify-content-between align-items-center" style="cursor:default;"><span>x${i.cant} ${i.nombre}</span><b>$${Math.round(i.subtotal).toLocaleString('es-AR')} <i class="bi bi-trash text-danger ms-2" onclick="carrito.splice(${idx},1);renderCar()"></i></b></div>`; });
+        if(dFijo > 0) t = t * (1 - dFijo/100);
+        document.getElementById('totalVenta').innerText = Math.round(t).toLocaleString('es-AR');
+        document.getElementById('listaCarrito').innerHTML = h;
+    }
+
+    async function saveVenta() {
+        if(!carrito.length) return;
+        const d = { idCliente: document.getElementById('clienteSel').value, canal: document.getElementById('canalVenta').value || "Directo", total: document.getElementById('totalVenta').innerText, metodoPago: document.getElementById('metodoVenta').value, estadoPago: document.getElementById('pagoVenta').value, nota: document.getElementById('notaVenta').value, items: carrito, estadoEntrega: 'Pendiente' };
+        await callAPI('registrarVenta', 'POST', { datos: d });
+        carrito=[]; renderCar(); alert("Venta Km7 Registrada");
+    }
+
+    // --- LISTA HISTORIAL ---
+    async function loadHist() {
+        const d = await callAPI('getHistorial');
+        hLocal = d;
+        document.getElementById('contenedorHistorial').innerHTML = d.map(v => `
+            <div class="card-custom d-flex align-items-center p-3" onclick="openFullEdit('${v.id}')">
+                <button class="btn-rayo" onclick="event.stopPropagation(); openQuick('${v.id}')"><i class="bi bi-lightning-fill"></i></button>
+                <div class="flex-grow-1"><b>${v.clienteNombre}</b><br><small>${v.fecha}</small></div>
+                <div class="text-end">
+                    <b>$${cleanNum(v.total).toLocaleString('es-AR')}</b><br>
+                    <span class="badge-km7 bg-${v.pago=='Pagado'?'success':'warning text-dark'}">${v.pago}</span>
+                    <span class="badge-km7 bg-${v.entrega=='Entregado'?'info text-white':'secondary'}">${v.entrega}</span>
+                </div>
+            </div>`).join('');
+    }
+
+    async function openFullEdit(id) {
+        let v = hLocal.find(x => x.id == id);
+        document.getElementById('eId').value = id;
+        document.getElementById('ePago').value = v.pago;
+        document.getElementById('eEntrega').value = v.entrega;
+        document.getElementById('eMetodo').value = v.metodo;
+        document.getElementById('eNota').value = v.nota;
+        const items = await callAPI('getDetalleVenta&id='+id);
+        editCarrito = items.map(i => ({...i, precio: cleanNum(i.precio), subtotal: cleanNum(i.subtotal)}));
+        renderEditCar(); mEdit.show();
+    }
+
+    function renderEditCar() {
+        let h='', t=0;
+        editCarrito.forEach((i, idx) => { t+=i.subtotal; h+=`<div class="d-flex justify-content-between border-bottom py-2"><span>${i.nombre} (x${i.cant})</span><b>$${Math.round(i.subtotal).toLocaleString('es-AR')} <i class="bi bi-trash text-danger ms-2" onclick="editCarrito.splice(${idx},1);renderEditCar()"></i></b></div>`; });
+        document.getElementById('eTotal').innerText = Math.round(t).toLocaleString('es-AR');
+        document.getElementById('editItemsArea').innerHTML = h;
+    }
+
+    function addItemToEdit() {
+        let p = pData.find(x => x[0] == document.getElementById('eProdSel').value);
+        editCarrito.push({idProd: p[0], nombre: p[1], cant: 1, precio: cleanNum(p[5]), subtotal: cleanNum(p[5])});
+        renderEditCar();
+    }
+
+    async function saveEditTotal() {
+        const d = { total: document.getElementById('eTotal').innerText, metodo: document.getElementById('eMetodo').value, pago: document.getElementById('ePago').value, nota: document.getElementById('eNota').value, entrega: document.getElementById('eEntrega').value, items: editCarrito };
+        await callAPI('actualizarVenta', 'POST', { id: document.getElementById('eId').value, datos: d });
+        mEdit.hide(); loadHist();
+    }
+
+    async function deleteVenta() {
+        if(!confirm("¿Borrar venta definitivamente?")) return;
+        await callAPI('eliminarVenta', 'POST', { id: document.getElementById('eId').value });
+        mEdit.hide(); loadHist();
+    }
+
+    // --- ACCIÓN RÁPIDA / WS ---
+    async function openQuick(id) {
+        let v = hLocal.find(x => x.id == id);
+        document.getElementById('qId').value = id;
+        document.getElementById('qPago').value = v.pago;
+        document.getElementById('qEntrega').value = v.entrega;
+        document.getElementById('qMetodo').value = v.metodo;
+        const items = await callAPI('getDetalleVenta&id='+id);
+        let base = items.reduce((a,c)=>a+cleanNum(c.subtotal),0);
+        document.getElementById('qOri').value = base;
+        document.getElementById('qDesc').value = 0;
+        recalcQ(); mQuick.show();
+    }
+
+    function recalcQ() {
+        let base = parseFloat(document.getElementById('qOri').value);
+        let d = parseFloat(document.getElementById('qDesc').value || 0);
+        document.getElementById('qTotalTxt').innerText = Math.round(base * (1 - d/100)).toLocaleString('es-AR');
+    }
+
+    async function saveQuick() {
+        let v = hLocal.find(x => x.id == document.getElementById('qId').value);
+        const items = await callAPI('getDetalleVenta&id='+v.id);
+        const d = { total: document.getElementById('qTotalTxt').innerText, pago: document.getElementById('qPago').value, entrega: document.getElementById('qEntrega').value, metodo: document.getElementById('qMetodo').value, nota: v.nota, items: items };
+        await callAPI('actualizarVenta', 'POST', { id: v.id, datos: d });
+        mQuick.hide(); loadHist();
+    }
+
+    async function prepararWS() {
+        let v = hLocal.find(x => x.id == document.getElementById('qId').value);
+        const items = await callAPI('getDetalleVenta&id='+v.id);
+        let det = items.map(i => `- ${i.nombre} (x${i.cant})`).join('%0A');
+        let msg = `☕ *Km7 cafe* %0A%0A👤 *Cliente:* ${v.clienteNombre}%0A📦 *Detalle:*%0A${det}%0A%0A💰 *Total:* $${document.getElementById('qTotalTxt').innerText}%0A💳 *Pago:* ${document.getElementById('qPago').value}%0A🚚 *Entrega:* ${document.getElementById('qEntrega').value}%0A%0A¡Gracias!`;
+        window.open("https://api.whatsapp.com/send?text=" + msg, '_blank');
+    }
+
+    // --- CAJA ---
+    async function loadCaja() {
+        const d = await callAPI('getCaja');
+        deudasLocal = d.deudas;
+        document.getElementById('cajaSaldo').innerText = '$' + Math.round(d.saldoActual).toLocaleString('es-AR');
+        document.getElementById('cajaPendiente').innerText = '$' + Math.round(d.pendienteCobro).toLocaleString('es-AR');
+        document.getElementById('listaMovCaja').innerHTML = d.movimientos.map(m => `
+            <div class="card-custom p-2 mb-2 border-start border-4 border-${m[2]=='Ingreso'?'success':'danger'}" onclick="verVentaDesdeCaja('${m[5]}')">
+                <div class="d-flex justify-content-between"><b>${m[3]}</b><span>$${cleanNum(m[4]).toLocaleString('es-AR')}</span></div>
+                <small>${m[1]} | ${m[6]}</small>
+            </div>`).join('');
+    }
+
+    function abrirModDeudas() {
+        document.getElementById('listaDeudasBody').innerHTML = deudasLocal.map(d => `<div class="p-2 border-bottom"><b>${d.cliente}</b><br><div class="d-flex justify-content-between"><small>${d.fecha}</small><span class="text-danger fw-bold">$${d.monto.toLocaleString('es-AR')}</span></div></div>`).join('') || "No hay deudas.";
+        mDeudas.show();
+    }
+
+    // --- CRM / CLIENTES ---
+    async function loadCRM() {
+        const d = await callAPI('getFormData');
+        document.getElementById('listaCRM').innerHTML = d.prospectos.map(p => `<div class="card-custom p-3" onclick="abrirCRM('${p[0]}','${p[1]}')"><b>${p[1]}</b><br><small>${p[2]} | ${p[4]}</small></div>`).join('');
+    }
+
+    async function abrirCRM(id, nombre) {
+        document.getElementById('crmId').value = id;
+        document.getElementById('crmNombre').innerText = nombre;
+        const h = await callAPI('getCRM&id='+id);
+        document.getElementById('crmHistorial').innerHTML = h.map(e => `<div class="mb-2 border-bottom pb-1"><b>${e[3]}:</b> ${e[4]}<br><small>${e[2]}</small></div>`).join('') || 'Sin registros.';
+        mCRM.show();
+    }
+
+    async function saveCRM() {
+        await callAPI('registrarCRM', 'POST', { id: document.getElementById('crmId').value, accion: "Nota", comentario: document.getElementById('crmNota').value });
+        mCRM.hide();
+    }
+
+    async function loadClientes() {
+        const d = await callAPI('getFormData');
+        cData = d.clientes;
+        document.getElementById('listaClientes').innerHTML = d.clientes.map(c => `<div class="card-custom p-3" onclick="abrirModCliente('${c[0]}')"><b>${c[1]}</b><br><small>${c[2]} | Desc: ${c[6] || 0}%</small></div>`).join('');
+    }
+
+    function abrirModCliente(id) {
+        let c = cData.find(x => x[0] === id);
+        document.getElementById('clieId').value = id;
+        document.getElementById('clieNom').value = c[1];
+        document.getElementById('clieTel').value = c[2];
+        document.getElementById('clieMail').value = c[3];
+        document.getElementById('clieDir').value = c[4];
+        document.getElementById('clieCat').value = c[5];
+        document.getElementById('clieDesc').value = c[6] || 0;
+        mClie.show();
+    }
+
+    async function saveCliente() {
+        const d = { nombre: document.getElementById('clieNom').value, tel: document.getElementById('clieTel').value, mail: document.getElementById('clieMail').value, dir: document.getElementById('clieDir').value, cat: document.getElementById('clieCat').value, desc: document.getElementById('clieDesc').value };
+        await callAPI('actualizarCliente', 'POST', { id: document.getElementById('clieId').value, datos: d });
+        mClie.hide(); loadClientes();
+    }
+</script>
+</body>
+</html>
