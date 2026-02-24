@@ -20,6 +20,9 @@
         .btn-km7 { background: var(--km7); color: #fff; border-radius: 12px; border: none; font-weight: 500; }
         .loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); display:none; justify-content:center; align-items:center; z-index:3000; }
         .badge-km7 { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 600; text-transform: uppercase; }
+        /* Estilo para el link de whatsapp que parece botón */
+        #btnWS { text-decoration: none; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        #btnWS.disabled { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -86,6 +89,29 @@
     <button class="nav-item" onclick="verSeccion('sec-caja', this); loadCaja();"><i class="bi bi-bank"></i>Caja</button>
 </nav>
 
+<div class="modal fade" id="modQuick" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
+    <h5 class="fw-bold mb-3 text-center">Acción Rápida</h5>
+    <input type="hidden" id="qId"><input type="hidden" id="qOri">
+    
+    <div class="mb-3"><label class="small fw-bold">Método</label><select id="qMetodo" class="form-select" onchange="actualizarLinkWS()"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
+    
+    <div class="row g-2 mb-3">
+        <div class="col-6"><label class="small fw-bold">Pago</label><select id="qPago" class="form-select" onchange="actualizarLinkWS()"><option>Pagado</option><option>Pendiente</option></select></div>
+        <div class="col-6"><label class="small fw-bold">Entrega</label><select id="qEntrega" class="form-select" onchange="actualizarLinkWS()"><option>Entregado</option><option>Pendiente</option></select></div>
+    </div>
+
+    <div class="mb-3"><label class="small fw-bold">Desc % Extra</label><input type="number" id="qDesc" class="form-control" oninput="recalcQ()"></div>
+    
+    <h4 class="text-center fw-bold mb-3">Total: $<span id="qTotalTxt">0</span></h4>
+    
+    <a id="btnWS" href="#" target="_blank" class="btn btn-success w-100 mb-2 py-3 fw-bold shadow-sm disabled">
+        <i class="bi bi-whatsapp me-2"></i> COMPARTIR TICKET FULL
+    </a>
+    
+    <button class="btn btn-km7 w-100" onclick="saveQuick()">ACTUALIZAR DATOS</button>
+    <div id="wsStatus" class="text-center small text-muted mt-1">Cargando productos...</div>
+</div></div></div>
+
 <div class="modal fade" id="modCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
     <h5 class="fw-bold mb-3">Editar Cliente</h5>
     <input type="hidden" id="clieId">
@@ -122,20 +148,6 @@
     <button class="btn btn-outline-danger btn-sm w-100" onclick="deleteVenta()">ELIMINAR VENTA COMPLETA</button>
 </div></div></div>
 
-<div class="modal fade" id="modQuick" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
-    <h5 class="fw-bold mb-3 text-center">Acción Rápida</h5>
-    <input type="hidden" id="qId"><input type="hidden" id="qOri">
-    <div class="mb-3"><label class="small fw-bold">Método</label><select id="qMetodo" class="form-select"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
-    <div class="row g-2 mb-3">
-        <div class="col-6"><label class="small fw-bold">Pago</label><select id="qPago" class="form-select"><option>Pagado</option><option>Pendiente</option></select></div>
-        <div class="col-6"><label class="small fw-bold">Entrega</label><select id="qEntrega" class="form-select"><option>Entregado</option><option>Pendiente</option></select></div>
-    </div>
-    <div class="mb-3"><label class="small fw-bold">Desc % Extra</label><input type="number" id="qDesc" class="form-control" oninput="recalcQ()"></div>
-    <h4 class="text-center fw-bold mb-3">Total: $<span id="qTotalTxt">0</span></h4>
-    <button class="btn btn-success w-100 mb-2 py-2 fw-bold" onclick="prepararWS()"><i class="bi bi-whatsapp"></i> COMPARTIR TICKET FULL</button>
-    <button class="btn btn-km7 w-100" onclick="saveQuick()">ACTUALIZAR DATOS</button>
-</div></div></div>
-
 <div class="modal fade" id="modCRM" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
     <h5 id="crmNombre" class="fw-bold mb-3"></h5>
     <input type="hidden" id="crmId">
@@ -152,12 +164,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // *******************************************************************
-    // URL DE KM7 MOTOR API (CONFIGURADA)
     const API_URL = 'https://script.google.com/macros/s/AKfycbxq69gkGczhOf683lUZXDpPPAofrcZSOdhFBvijAou44ZGFYadgeIrH_zG_SwlJtBuc/exec'; 
-    // *******************************************************************
 
-    let pData=[], cData=[], hLocal=[], carrito=[], editCarrito=[], deudasLocal=[];
+    let pData=[], cData=[], hLocal=[], carrito=[], editCarrito=[], deudasLocal=[], itemsTemporalesWS=[];
     let loader, mQuick, mEdit, mDeudas, mClie, mCRM;
 
     window.onload = () => {
@@ -189,11 +198,74 @@
             showLoader(false);
             return data;
         } catch (e) {
-            console.error(e);
             showLoader(false);
-            alert("Error de conexión con Km7 Motor");
+            console.error(e);
+            return {error: true};
         }
     }
+
+    // --- LÓGICA DE WHATSAPP PARA IPHONE ---
+    
+    async function openQuick(id) {
+        let v = hLocal.find(x => x.id == id);
+        document.getElementById('qId').value = id;
+        document.getElementById('qPago').value = v.pago;
+        document.getElementById('qEntrega').value = v.entrega;
+        document.getElementById('qMetodo').value = v.metodo;
+        
+        // Bloqueamos el botón mientras cargan los productos
+        const btn = document.getElementById('btnWS');
+        const status = document.getElementById('wsStatus');
+        btn.classList.add('disabled');
+        status.innerText = "Cargando productos del ticket...";
+        
+        mQuick.show();
+
+        // Buscamos productos en segundo plano
+        itemsTemporalesWS = await callAPI('getDetalleVenta', 'GET', {id: id});
+        
+        let base = itemsTemporalesWS.reduce((a,c)=>a+cleanNum(c.subtotal),0);
+        document.getElementById('qOri').value = base;
+        document.getElementById('qDesc').value = 0;
+        
+        recalcQ(); // Esto también actualiza el link de WhatsApp
+        
+        btn.classList.remove('disabled');
+        status.innerText = "✅ Ticket listo para enviar";
+    }
+
+    function recalcQ() {
+        let base = parseFloat(document.getElementById('qOri').value);
+        let d = parseFloat(document.getElementById('qDesc').value || 0);
+        document.getElementById('qTotalTxt').innerText = Math.round(base * (1 - d/100)).toLocaleString('es-AR');
+        actualizarLinkWS();
+    }
+
+    function actualizarLinkWS() {
+        let idVenta = document.getElementById('qId').value;
+        let v = hLocal.find(x => x.id == idVenta);
+        if(!v || itemsTemporalesWS.length === 0) return;
+
+        let totalTxt = document.getElementById('qTotalTxt').innerText;
+        let pago = document.getElementById('qPago').value;
+        let entrega = document.getElementById('qEntrega').value;
+        let metodo = document.getElementById('qMetodo').value;
+
+        let det = itemsTemporalesWS.map(i => `• *${i.cant}x* ${i.nombre}`).join('%0A');
+        let msg = `☕ *Km7 cafe* %0A` +
+                  `---------------------------%0A` +
+                  `👤 *Cliente:* ${v.clienteNombre}%0A` +
+                  `📦 *Detalle:*%0A${det}%0A` +
+                  `---------------------------%0A` +
+                  `💰 *Total:* $${totalTxt}%0A` +
+                  `💳 *Pago:* ${pago} (${metodo})%0A` +
+                  `🚚 *Entrega:* ${entrega}%0A%0A` +
+                  `¡Muchas gracias!`;
+
+        document.getElementById('btnWS').href = "https://api.whatsapp.com/send?text=" + msg;
+    }
+
+    // --- FIN LÓGICA IPHONE ---
 
     async function refresh() {
         const d = await callAPI('getFormData');
@@ -300,44 +372,12 @@
         mEdit.hide(); loadHist();
     }
 
-    async function openQuick(id) {
-        let v = hLocal.find(x => x.id == id);
-        document.getElementById('qId').value = id;
-        document.getElementById('qPago').value = v.pago;
-        document.getElementById('qEntrega').value = v.entrega;
-        document.getElementById('qMetodo').value = v.metodo;
-        const items = await callAPI('getDetalleVenta', 'GET', {id: id});
-        let base = items.reduce((a,c)=>a+cleanNum(c.subtotal),0);
-        document.getElementById('qOri').value = base;
-        document.getElementById('qDesc').value = 0;
-        recalcQ(); mQuick.show();
-    }
-
-    function recalcQ() {
-        let base = parseFloat(document.getElementById('qOri').value);
-        let d = parseFloat(document.getElementById('qDesc').value || 0);
-        document.getElementById('qTotalTxt').innerText = Math.round(base * (1 - d/100)).toLocaleString('es-AR');
-    }
-
     async function saveQuick() {
         let v = hLocal.find(x => x.id == document.getElementById('qId').value);
         const items = await callAPI('getDetalleVenta', 'GET', {id: v.id});
         const d = { total: document.getElementById('qTotalTxt').innerText, pago: document.getElementById('qPago').value, entrega: document.getElementById('qEntrega').value, metodo: document.getElementById('qMetodo').value, nota: v.nota, items: items };
         await callAPI('actualizarVenta', 'GET', { id: v.id, datos: d });
         mQuick.hide(); loadHist();
-    }
-
-    async function prepararWS() {
-        try {
-            let idVenta = document.getElementById('qId').value;
-            let v = hLocal.find(x => x.id == idVenta);
-            const items = await callAPI('getDetalleVenta', 'GET', { id: idVenta });
-            if(!items || items.error) return alert("Error al cargar productos");
-            let totalTxt = document.getElementById('qTotalTxt').innerText;
-            let det = items.map(i => `• *${i.cant}x* ${i.nombre}`).join('%0A');
-            let msg = `☕ *Km7 cafe* %0A---------------------------%0A👤 *Cliente:* ${v.clienteNombre}%0A📦 *Detalle:*%0A${det}%0A---------------------------%0A💰 *Total:* $${totalTxt}%0A💳 *Pago:* ${document.getElementById('qPago').value}%0A🚚 *Entrega:* ${document.getElementById('qEntrega').value}%0A%0A¡Gracias!`;
-            window.open("https://api.whatsapp.com/send?text=" + msg, '_blank');
-        } catch (e) { alert("Error al generar WhatsApp"); }
     }
 
     async function loadCaja() {
