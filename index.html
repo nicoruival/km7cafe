@@ -132,14 +132,14 @@
     </div>
     <div class="mb-3"><label class="small fw-bold">Desc % Extra</label><input type="number" id="qDesc" class="form-control" oninput="recalcQ()"></div>
     <h4 class="text-center fw-bold mb-3">Total: $<span id="qTotalTxt">0</span></h4>
-    <button class="btn btn-success w-100 mb-2 py-2" onclick="prepararWS()"><i class="bi bi-whatsapp"></i> Compartir Ticket Full</button>
+    <button class="btn btn-success w-100 mb-2 py-2 fw-bold" onclick="prepararWS()"><i class="bi bi-whatsapp"></i> COMPARTIR TICKET FULL</button>
     <button class="btn btn-km7 w-100" onclick="saveQuick()">ACTUALIZAR DATOS</button>
 </div></div></div>
 
 <div class="modal fade" id="modCRM" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
     <h5 id="crmNombre" class="fw-bold mb-3"></h5>
     <input type="hidden" id="crmId">
-    <textarea id="crmNota" class="form-control mb-3" placeholder="Registrar gestión o nota..."></textarea>
+    <textarea id="crmNota" class="form-control mb-3" placeholder="Registrar gestión..."></textarea>
     <button class="btn btn-km7 w-100 mb-3" onclick="saveCRM()">Guardar Acción</button>
     <div id="crmHistorial" class="small" style="max-height:200px; overflow-y:auto;"></div>
 </div></div></div>
@@ -153,7 +153,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // *******************************************************************
-    // REEMPLAZA ESTA URL POR TU LINK DE GOOGLE APPS SCRIPT:
+    // URL DE KM7 MOTOR API (CONFIGURADA)
     const API_URL = 'https://script.google.com/macros/s/AKfycbxq69gkGczhOf683lUZXDpPPAofrcZSOdhFBvijAou44ZGFYadgeIrH_zG_SwlJtBuc/exec'; 
     // *******************************************************************
 
@@ -179,28 +179,25 @@
         return parseFloat(s) || 0;
     }
 
-    // FUNCIÓN PARA HABLAR CON EL MOTOR API
     async function callAPI(action, method = 'GET', body = null) {
         showLoader(true);
         try {
-            let url = `${API_URL}?action=${action}`;
-            let options = { method: method };
-            if (method === 'POST') {
-                options.body = JSON.stringify({ action: action, ...body });
-            }
-            const res = await fetch(url, options);
+            let dataParam = encodeURIComponent(JSON.stringify({ action: action, ...body }));
+            let url = `${API_URL}?data=${dataParam}`;
+            const res = await fetch(url);
             const data = await res.json();
             showLoader(false);
             return data;
         } catch (e) {
             console.error(e);
             showLoader(false);
-            alert("Error de conexión");
+            alert("Error de conexión con Km7 Motor");
         }
     }
 
     async function refresh() {
         const d = await callAPI('getFormData');
+        if(!d || d.error) return;
         pData=d.productos; cData=d.clientes;
         document.getElementById('prodSel').innerHTML = d.productos.map(p => `<option value="${p[0]}">${p[1]}</option>`).join('');
         document.getElementById('eProdSel').innerHTML = document.getElementById('prodSel').innerHTML;
@@ -214,7 +211,6 @@
         el.classList.add('active');
     }
 
-    // --- LÓGICA DE VENTAS ---
     function cambioCliente() {
         const sel = document.getElementById('clienteSel');
         const desc = parseFloat(sel.options[sel.selectedIndex].getAttribute('data-desc') || 0);
@@ -247,13 +243,13 @@
     async function saveVenta() {
         if(!carrito.length) return;
         const d = { idCliente: document.getElementById('clienteSel').value, canal: document.getElementById('canalVenta').value || "Directo", total: document.getElementById('totalVenta').innerText, metodoPago: document.getElementById('metodoVenta').value, estadoPago: document.getElementById('pagoVenta').value, nota: document.getElementById('notaVenta').value, items: carrito, estadoEntrega: 'Pendiente' };
-        await callAPI('registrarVenta', 'POST', { datos: d });
+        await callAPI('registrarVenta', 'GET', { datos: d });
         carrito=[]; renderCar(); alert("Venta Km7 Registrada");
     }
 
-    // --- LISTA HISTORIAL ---
     async function loadHist() {
         const d = await callAPI('getHistorial');
+        if(!d || d.error) return;
         hLocal = d;
         document.getElementById('contenedorHistorial').innerHTML = d.map(v => `
             <div class="card-custom d-flex align-items-center p-3" onclick="openFullEdit('${v.id}')">
@@ -274,7 +270,7 @@
         document.getElementById('eEntrega').value = v.entrega;
         document.getElementById('eMetodo').value = v.metodo;
         document.getElementById('eNota').value = v.nota;
-        const items = await callAPI('getDetalleVenta&id='+id);
+        const items = await callAPI('getDetalleVenta', 'GET', {id: id});
         editCarrito = items.map(i => ({...i, precio: cleanNum(i.precio), subtotal: cleanNum(i.subtotal)}));
         renderEditCar(); mEdit.show();
     }
@@ -294,24 +290,23 @@
 
     async function saveEditTotal() {
         const d = { total: document.getElementById('eTotal').innerText, metodo: document.getElementById('eMetodo').value, pago: document.getElementById('ePago').value, nota: document.getElementById('eNota').value, entrega: document.getElementById('eEntrega').value, items: editCarrito };
-        await callAPI('actualizarVenta', 'POST', { id: document.getElementById('eId').value, datos: d });
+        await callAPI('actualizarVenta', 'GET', { id: document.getElementById('eId').value, datos: d });
         mEdit.hide(); loadHist();
     }
 
     async function deleteVenta() {
         if(!confirm("¿Borrar venta definitivamente?")) return;
-        await callAPI('eliminarVenta', 'POST', { id: document.getElementById('eId').value });
+        await callAPI('eliminarVenta', 'GET', { id: document.getElementById('eId').value });
         mEdit.hide(); loadHist();
     }
 
-    // --- ACCIÓN RÁPIDA / WS ---
     async function openQuick(id) {
         let v = hLocal.find(x => x.id == id);
         document.getElementById('qId').value = id;
         document.getElementById('qPago').value = v.pago;
         document.getElementById('qEntrega').value = v.entrega;
         document.getElementById('qMetodo').value = v.metodo;
-        const items = await callAPI('getDetalleVenta&id='+id);
+        const items = await callAPI('getDetalleVenta', 'GET', {id: id});
         let base = items.reduce((a,c)=>a+cleanNum(c.subtotal),0);
         document.getElementById('qOri').value = base;
         document.getElementById('qDesc').value = 0;
@@ -326,28 +321,33 @@
 
     async function saveQuick() {
         let v = hLocal.find(x => x.id == document.getElementById('qId').value);
-        const items = await callAPI('getDetalleVenta&id='+v.id);
+        const items = await callAPI('getDetalleVenta', 'GET', {id: v.id});
         const d = { total: document.getElementById('qTotalTxt').innerText, pago: document.getElementById('qPago').value, entrega: document.getElementById('qEntrega').value, metodo: document.getElementById('qMetodo').value, nota: v.nota, items: items };
-        await callAPI('actualizarVenta', 'POST', { id: v.id, datos: d });
+        await callAPI('actualizarVenta', 'GET', { id: v.id, datos: d });
         mQuick.hide(); loadHist();
     }
 
     async function prepararWS() {
-        let v = hLocal.find(x => x.id == document.getElementById('qId').value);
-        const items = await callAPI('getDetalleVenta&id='+v.id);
-        let det = items.map(i => `- ${i.nombre} (x${i.cant})`).join('%0A');
-        let msg = `☕ *Km7 cafe* %0A%0A👤 *Cliente:* ${v.clienteNombre}%0A📦 *Detalle:*%0A${det}%0A%0A💰 *Total:* $${document.getElementById('qTotalTxt').innerText}%0A💳 *Pago:* ${document.getElementById('qPago').value}%0A🚚 *Entrega:* ${document.getElementById('qEntrega').value}%0A%0A¡Gracias!`;
-        window.open("https://api.whatsapp.com/send?text=" + msg, '_blank');
+        try {
+            let idVenta = document.getElementById('qId').value;
+            let v = hLocal.find(x => x.id == idVenta);
+            const items = await callAPI('getDetalleVenta', 'GET', { id: idVenta });
+            if(!items || items.error) return alert("Error al cargar productos");
+            let totalTxt = document.getElementById('qTotalTxt').innerText;
+            let det = items.map(i => `• *${i.cant}x* ${i.nombre}`).join('%0A');
+            let msg = `☕ *Km7 cafe* %0A---------------------------%0A👤 *Cliente:* ${v.clienteNombre}%0A📦 *Detalle:*%0A${det}%0A---------------------------%0A💰 *Total:* $${totalTxt}%0A💳 *Pago:* ${document.getElementById('qPago').value}%0A🚚 *Entrega:* ${document.getElementById('qEntrega').value}%0A%0A¡Gracias!`;
+            window.open("https://api.whatsapp.com/send?text=" + msg, '_blank');
+        } catch (e) { alert("Error al generar WhatsApp"); }
     }
 
-    // --- CAJA ---
     async function loadCaja() {
         const d = await callAPI('getCaja');
+        if(!d || d.error) return;
         deudasLocal = d.deudas;
         document.getElementById('cajaSaldo').innerText = '$' + Math.round(d.saldoActual).toLocaleString('es-AR');
         document.getElementById('cajaPendiente').innerText = '$' + Math.round(d.pendienteCobro).toLocaleString('es-AR');
         document.getElementById('listaMovCaja').innerHTML = d.movimientos.map(m => `
-            <div class="card-custom p-2 mb-2 border-start border-4 border-${m[2]=='Ingreso'?'success':'danger'}" onclick="verVentaDesdeCaja('${m[5]}')">
+            <div class="card-custom p-2 mb-2 border-start border-4 border-${m[2]=='Ingreso'?'success':'danger'}" style="cursor:default;">
                 <div class="d-flex justify-content-between"><b>${m[3]}</b><span>$${cleanNum(m[4]).toLocaleString('es-AR')}</span></div>
                 <small>${m[1]} | ${m[6]}</small>
             </div>`).join('');
@@ -358,27 +358,28 @@
         mDeudas.show();
     }
 
-    // --- CRM / CLIENTES ---
     async function loadCRM() {
         const d = await callAPI('getFormData');
+        if(!d || d.error) return;
         document.getElementById('listaCRM').innerHTML = d.prospectos.map(p => `<div class="card-custom p-3" onclick="abrirCRM('${p[0]}','${p[1]}')"><b>${p[1]}</b><br><small>${p[2]} | ${p[4]}</small></div>`).join('');
     }
 
     async function abrirCRM(id, nombre) {
         document.getElementById('crmId').value = id;
         document.getElementById('crmNombre').innerText = nombre;
-        const h = await callAPI('getCRM&id='+id);
+        const h = await callAPI('getCRM', 'GET', {id: id});
         document.getElementById('crmHistorial').innerHTML = h.map(e => `<div class="mb-2 border-bottom pb-1"><b>${e[3]}:</b> ${e[4]}<br><small>${e[2]}</small></div>`).join('') || 'Sin registros.';
         mCRM.show();
     }
 
     async function saveCRM() {
-        await callAPI('registrarCRM', 'POST', { id: document.getElementById('crmId').value, accion: "Nota", comentario: document.getElementById('crmNota').value });
+        await callAPI('registrarCRM', 'GET', { id: document.getElementById('crmId').value, accion: "Nota", comentario: document.getElementById('crmNota').value });
         mCRM.hide();
     }
 
     async function loadClientes() {
         const d = await callAPI('getFormData');
+        if(!d || d.error) return;
         cData = d.clientes;
         document.getElementById('listaClientes').innerHTML = d.clientes.map(c => `<div class="card-custom p-3" onclick="abrirModCliente('${c[0]}')"><b>${c[1]}</b><br><small>${c[2]} | Desc: ${c[6] || 0}%</small></div>`).join('');
     }
@@ -397,7 +398,7 @@
 
     async function saveCliente() {
         const d = { nombre: document.getElementById('clieNom').value, tel: document.getElementById('clieTel').value, mail: document.getElementById('clieMail').value, dir: document.getElementById('clieDir').value, cat: document.getElementById('clieCat').value, desc: document.getElementById('clieDesc').value };
-        await callAPI('actualizarCliente', 'POST', { id: document.getElementById('clieId').value, datos: d });
+        await callAPI('actualizarCliente', 'GET', { id: document.getElementById('clieId').value, datos: d });
         mClie.hide(); loadClientes();
     }
 </script>
