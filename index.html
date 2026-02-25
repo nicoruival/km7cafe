@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Fleet v19.1</title>
+    <title>Km7 Fleet v19.2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -14,20 +14,24 @@
         .header-logo { font-weight: 900; color: var(--km7-coffee); }
         .header-user { width: 36px; height: 36px; background: var(--km7-coffee); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; border: 2px solid var(--km7-gold); }
 
-        /* NAVEGACIÓN v18.5 RESTAURADA */
         .nav-bottom { position: fixed; bottom: 15px; left: 15px; right: 15px; height: 75px; background: var(--km7-coffee); display: flex; border-radius: 25px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); padding: 0 10px; }
         .nav-item { flex: 1; text-align: center; color: rgba(255,255,255,0.4); border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s; }
         .nav-item i { font-size: 24px; margin-bottom: 4px; }
         .nav-item span { font-size: 11px; font-weight: 600; }
         .nav-item.active { color: white; }
-        .nav-item.active i { color: var(--km7-gold); transform: scale(1.1); }
+        .nav-item.active i { color: var(--km7-gold); }
 
-        .hist-card, .crm-card { background: var(--km7-card); border-radius: 20px; padding: 18px; margin-bottom: 16px; border: none; box-shadow: 0 8px 20px rgba(44, 27, 14, 0.04); border-left: 6px solid #eee; }
+        .hist-card { background: var(--km7-card); border-radius: 20px; padding: 18px; margin-bottom: 16px; border: none; box-shadow: 0 8px 20px rgba(44, 27, 14, 0.04); border-left: 6px solid #eee; position: relative; }
         .pend-entrega { border-left-color: #f39c12; }
         .listo-entrega { border-left-color: #28a745; }
+        
+        .btn-action-small { width: 38px; height: 38px; border-radius: 10px; border: none; background: #f8f9fa; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.2s; }
+        .btn-ws { background: #eaffea; color: #25d366; }
+
         .status-pill { padding: 4px 10px; border-radius: 12px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
         .pill-pagado { background: #e8f5e9; color: #2e7d32; }
         .pill-pendiente { background: #fff3e0; color: #ef6c00; }
+
         .view-section { display: none; padding: 15px; animation: slideUp 0.3s ease-out; }
         .active-section { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -45,7 +49,7 @@
 <body>
 
 <header class="app-header">
-    <div style="font-size:9px; font-weight:800; color:#ccc;">v19.1</div>
+    <div style="font-size:9px; font-weight:800; color:#ccc;">v19.2</div>
     <div class="header-logo">KM7 <span style="font-weight:300; color:var(--km7-gold)">CAFÉ</span></div>
     <div class="header-user">NR</div>
 </header>
@@ -114,24 +118,16 @@
 </div>
 
 <nav class="nav-bottom">
-    <button class="nav-item active" onclick="ver('sec-venta', this)">
-        <i class="bi bi-cup-hot-fill"></i><span>VENTA</span>
-    </button>
-    <button class="nav-item" onclick="ver('sec-historial', this); loadHist();">
-        <i class="bi bi-receipt-cutoff"></i><span>VENTAS</span>
-    </button>
-    <button class="nav-item" onclick="ver('sec-crm', this); loadCRM();">
-        <i class="bi bi-person-lines-fill"></i><span>CRM</span>
-    </button>
-    <button class="nav-item" onclick="ver('sec-caja', this); loadCaja();">
-        <i class="bi bi-wallet2"></i><span>CAJA</span>
-    </button>
+    <button class="nav-item active" onclick="ver('sec-venta', this)"><i class="bi bi-cup-hot-fill"></i><span>VENTA</span></button>
+    <button class="nav-item" onclick="ver('sec-historial', this); loadHist();"><i class="bi bi-receipt-cutoff"></i><span>VENTAS</span></button>
+    <button class="nav-item" onclick="ver('sec-crm', this); loadCRM();"><i class="bi bi-person-lines-fill"></i><span>CRM</span></button>
+    <button class="nav-item" onclick="ver('sec-caja', this); loadCaja();"><i class="bi bi-wallet2"></i><span>CAJA</span></button>
 </nav>
 
 <div class="modal fade" id="modEditItem" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4"><h6 class="fw-bold mb-3">Editar Item</h6><input type="number" id="editCant" class="form-control mb-2"><input type="number" id="editPrecio" class="form-control mb-3"><div class="d-flex gap-2"><button class="btn btn-danger flex-grow-1" onclick="carrito.splice(editingIdx,1); renderCar(); modals.edit.hide();">Borrar</button><button class="btn btn-km7 flex-grow-1" onclick="saveEditItem()">Guardar</button></div></div></div></div>
 <div class="modal fade" id="modCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3">Nuevo Cliente</h5><input type="text" id="ncNombre" class="form-control mb-2" placeholder="Nombre"><select id="ncCat" class="form-select mb-2"><option>Minorista</option><option>Mayorista</option></select><input type="tel" id="ncTel" class="form-control mb-3" placeholder="Teléfono"><button class="btn btn-km7" onclick="crearClie()">GUARDAR</button></div></div></div>
 <div class="modal fade" id="modProspecto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3">Nuevo Prospecto</h5><input type="text" id="npNombre" class="form-control mb-2" placeholder="Nombre/Lugar"><input type="tel" id="npTel" class="form-control mb-3" placeholder="WhatsApp"><button class="btn btn-km7" onclick="crearPrsp()">AÑADIR</button></div></div></div>
-<div class="modal fade" id="modGasto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3">Registrar Gasto</h5><input type="number" id="gMonto" class="form-control mb-2" placeholder="Monto"><input type="text" id="gNota" class="form-control mb-3" placeholder="Concepto (Ej: Alquiler, Luz)"><button class="btn btn-danger w-100 py-3" onclick="guardarGasto()">REGISTRAR GASTO</button></div></div></div>
+<div class="modal fade" id="modGasto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3">Registrar Gasto</h5><input type="number" id="gMonto" class="form-control mb-2" placeholder="Monto"><input type="text" id="gNota" class="form-control mb-3" placeholder="Concepto"><button class="btn btn-danger w-100 py-3" onclick="guardarGasto()">REGISTRAR GASTO</button></div></div></div>
 <div class="modal fade" id="modLogs" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content p-4 rounded-4 border-0"><h6 class="fw-bold mb-3">Seguimiento</h6><div id="contLogs" class="mb-3"></div><input type="text" id="logGest" class="form-control mb-2" placeholder="¿Qué se habló?"><button class="btn btn-km7" onclick="addLog()">Agregar</button></div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -139,10 +135,7 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbxq69gkGczhOf683lUZXDpPPAofrcZSOdhFBvijAou44ZGFYadgeIrH_zG_SwlJtBuc/exec";
     let productos = [], clientes = [], carrito = [], histData = [], prospectos = [], curPrspId = "";
     let fEntAct = false, fPagAct = false, editingIdx = -1;
-    const modals = { 
-        edit: new bootstrap.Modal('#modEditItem'), clie: new bootstrap.Modal('#modCliente'), 
-        prsp: new bootstrap.Modal('#modProspecto'), gasto: new bootstrap.Modal('#modGasto'), logs: new bootstrap.Modal('#modLogs') 
-    };
+    const modals = { edit: new bootstrap.Modal('#modEditItem'), clie: new bootstrap.Modal('#modCliente'), prsp: new bootstrap.Modal('#modProspecto'), gasto: new bootstrap.Modal('#modGasto'), logs: new bootstrap.Modal('#modLogs') };
 
     function callAPI(action, data = null, id = null, extra = null, val = null) {
         return new Promise((resolve) => {
@@ -176,45 +169,55 @@
         let h = '', st = 0;
         carrito.forEach((i, idx) => { st += i.subtotal; h += `<div class="card-custom py-2 d-flex justify-content-between align-items-center mb-2" onclick="openEditItem(${idx})"><span><b>${i.nombre}</b> x${i.cant}</span><b>$${i.subtotal}</b></div>`; });
         const desc = parseFloat(document.getElementById('descValor').value) || 0;
-        document.getElementById('listaItems').innerHTML = h; document.getElementById('totalVenta').innerText = (st - desc).toLocaleString();
+        document.getElementById('totalVenta').innerText = (st - desc).toLocaleString();
     }
     function openEditItem(idx) { editingIdx = idx; document.getElementById('editCant').value = carrito[idx].cant; document.getElementById('editPrecio').value = carrito[idx].precio; modals.edit.show(); }
     function saveEditItem() { carrito[editingIdx].cant = document.getElementById('editCant').value; carrito[editingIdx].precio = document.getElementById('editPrecio').value; carrito[editingIdx].subtotal = carrito[editingIdx].cant * carrito[editingIdx].precio; renderCar(); modals.edit.hide(); }
-    async function loadCaja() {
-        const d = await callAPI('getCaja');
-        document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
-        document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
-        document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `
-            <div class="card-custom py-2 d-flex justify-content-between border-start border-4 ${m.tipo=='Egreso'?'border-danger':'border-success'}">
-                <div class="d-flex flex-column"><span style="font-size:13px; font-weight:600">${m.descripcion}</span><small class="text-muted" style="font-size:10px">${m.fecha} | ${m.medio}</small>${m.nota ? `<small class="text-primary" style="font-size:10px; font-style:italic">Nota: ${m.nota}</small>` : ''}</div><b>$${m.monto}</b>
-            </div>`).join('');
-        document.getElementById('contenedorDeudas').innerHTML = d.detallesPendientes.map(p => `<div class="small p-2 bg-white mb-1 rounded shadow-sm">${p.cliente}: $${p.monto}</div>`).join('');
-    }
-    async function guardarGasto() {
-        const m = document.getElementById('gMonto').value; const n = document.getElementById('gNota').value;
-        if(!m || !n) return alert("Completar monto y concepto");
-        document.getElementById('loader').style.display = 'flex';
-        await callAPI('registrarGasto', { monto: m, nota: n, medioPago: 'Efectivo' });
-        document.getElementById('gMonto').value = ""; document.getElementById('gNota').value = ""; modals.gasto.hide(); await loadCaja();
-        document.getElementById('loader').style.display = 'none';
-    }
+
     async function loadHist() { histData = await callAPI('getHistorial'); renderHist(); }
-    function toggleF(tipo) {
-        if(tipo === 'entrega') { fEntAct = !fEntAct; document.getElementById('fEnt').classList.toggle('btn-filter-active', fEntAct); }
-        if(tipo === 'pago') { fPagAct = !fPagAct; document.getElementById('fPag').classList.toggle('btn-filter-active', fPagAct); }
-        renderHist();
-    }
     function renderHist() {
         const b = document.getElementById('busqHist').value.toLowerCase();
         document.getElementById('contenedorHistorial').innerHTML = histData
             .filter(v => v.clienteNombre.toLowerCase().includes(b))
             .filter(v => !fEntAct || v.entrega === 'Pendiente')
             .filter(v => !fPagAct || v.pago === 'Pendiente')
-            .map(v => `<div class="hist-card ${v.entrega==='Entregado'?'listo-entrega':'pend-entrega'}"><div class="d-flex justify-content-between"><b>${v.clienteNombre}</b><b>$${v.total}</b></div><div class="my-2"><span class="status-pill ${v.pago==='Pagado'?'pill-pagado':'pill-pendiente'}">${v.pago}</span></div><div class="d-flex gap-2"><button class="btn-action-small" onclick="updStat('${v.id}','pago','${v.pago}')"><i class="bi bi-cash"></i></button><button class="btn-action-small" onclick="updStat('${v.id}','entrega','${v.entrega}')"><i class="bi bi-truck"></i></button></div></div>`).join('');
+            .map(v => `
+            <div class="hist-card ${v.entrega==='Entregado'?'listo-entrega':'pend-entrega'}">
+                <div class="d-flex justify-content-between"><b>${v.clienteNombre}</b><b>$${v.total}</b></div>
+                <div class="my-2"><span class="status-pill ${v.pago==='Pagado'?'pill-pagado':'pill-pendiente'}">${v.pago}</span></div>
+                <div class="d-flex gap-2">
+                    <button class="btn-action-small" onclick="updStat('${v.id}','pago','${v.pago}')"><i class="bi bi-cash"></i></button>
+                    <button class="btn-action-small" onclick="updStat('${v.id}','entrega','${v.entrega}')"><i class="bi bi-truck"></i></button>
+                    <button class="btn-action-small btn-ws" onclick="shareVenta('${v.id}')"><i class="bi bi-whatsapp"></i></button>
+                </div>
+            </div>`).join('');
     }
+
+    function shareVenta(id) {
+        const v = histData.find(x => x.id === id);
+        if(!v) return;
+        const msg = `*KM7 COFFEE ROASTERS*\n------------------\n📅 *Fecha:* ${v.fecha}\n👤 *Cliente:* ${v.clienteNombre}\n☕ *Productos:* ${v.productos}\n📝 *Nota:* ${v.nota || '-'}\n💰 *Desc:* $${v.descuento || '0'}\n✅ *TOTAL:* $${v.total}\n------------------\n_¡Gracias por tu compra!_`;
+        window.open(`https://wa.me/${v.clienteTel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
     async function updStat(id, t, v) {
         const nv = (t==='pago') ? (v==='Pagado'?'Pendiente':'Pagado') : (v==='Entregado'?'Pendiente':'Entregado');
         document.getElementById('loader').style.display='flex'; await callAPI('updateStatusVenta', null, id, t, nv); await loadHist(); document.getElementById('loader').style.display='none';
+    }
+    
+    // Funciones de Caja, CRM y Navegación (v19.1 base)
+    async function loadCaja() {
+        const d = await callAPI('getCaja');
+        document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
+        document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
+        document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `<div class="card-custom py-2 d-flex justify-content-between border-start border-4 ${m.tipo=='Egreso'?'border-danger':'border-success'}"><div class="d-flex flex-column"><span style="font-size:13px; font-weight:600">${m.descripcion}</span><small class="text-muted" style="font-size:10px">${m.fecha} | ${m.medio}</small>${m.nota ? `<small class="text-primary" style="font-size:10px; font-style:italic">Nota: ${m.nota}</small>` : ''}</div><b>$${m.monto}</b></div>`).join('');
+    }
+    async function guardarGasto() {
+        const m = document.getElementById('gMonto').value; const n = document.getElementById('gNota').value;
+        if(!m || !n) return alert("Completar monto y concepto");
+        document.getElementById('loader').style.display = 'flex';
+        await callAPI('registrarGasto', { monto: m, nota: n, medioPago: 'Efectivo' });
+        document.getElementById('gMonto').value = ""; document.getElementById('gNota').value = ""; modals.gasto.hide(); await loadCaja(); document.getElementById('loader').style.display = 'none';
     }
     async function loadCRM() {
         const d = await callAPI('getFormData'); prospectos = d.prospectos;
@@ -222,14 +225,10 @@
     }
     async function openLogs(id) { curPrspId = id; modals.logs.show(); const l = await callAPI('getSeguimientos', null, id); document.getElementById('contLogs').innerHTML = l.map(x => `<div>${x[4]}</div>`).join(''); }
     async function addLog() { await callAPI('agregarLogCRM', { idProspecto: curPrspId, gestion: document.getElementById('logGest').value }); document.getElementById('logGest').value=""; openLogs(curPrspId); }
-    function ver(id, el) { 
-        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section'));
-        document.getElementById(id).classList.add('active-section');
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
-    }
+    function ver(id, el) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section')); document.getElementById(id).classList.add('active-section'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
     function toggleMedioPago() { document.getElementById('divMedioPago').classList.toggle('hidden', document.getElementById('estadoPago').value !== 'Pagado'); }
     function toggleDeudas() { document.getElementById('listaDeudas').classList.toggle('hidden'); }
+    function toggleF(tipo) { if(tipo === 'entrega') { fEntAct = !fEntAct; document.getElementById('fEnt').classList.toggle('btn-filter-active', fEntAct); } if(tipo === 'pago') { fPagAct = !fPagAct; document.getElementById('fPag').classList.toggle('btn-filter-active', fPagAct); } renderHist(); }
     async function enviarVenta() {
         document.getElementById('loader').style.display='flex';
         const totalV = document.getElementById('totalVenta').innerText.replace(/\./g, '');
