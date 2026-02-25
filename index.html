@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Fleet v19.5</title>
+    <title>Km7 Fleet v19.6</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -19,7 +19,7 @@
         .nav-item.active { color: white; }
         .nav-item.active i { color: var(--km7-gold); }
         
-        /* HISTORIAL AJUSTADO v19.5 */
+        /* ESTILOS HISTORIAL v19.6 */
         .hist-card { background: var(--km7-card); border-radius: 18px; padding: 14px; margin-bottom: 12px; border: none; box-shadow: 0 4px 15px rgba(44, 27, 14, 0.04); border-left: 5px solid #eee; position: relative; }
         .pend-entrega { border-left-color: #f39c12; }
         .listo-entrega { border-left-color: #28a745; }
@@ -30,6 +30,10 @@
         .pill-pendiente { background: #fff3e0; color: #ef6c00; }
         .pill-entrega { background: #f0f0f0; color: #555; margin-left: 4px; }
         
+        /* CORRECCIÓN ESTADO ACTIVO FILTROS */
+        .btn-filter { background: white; border: none; transition: 0.3s; color: #666; }
+        .btn-filter-active { background: var(--km7-coffee) !important; color: white !important; transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important; }
+
         .view-section { display: none; padding: 15px; animation: slideUp 0.3s ease-out; }
         .active-section { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -46,7 +50,7 @@
 <body>
 
 <header class="app-header">
-    <div style="font-size:9px; font-weight:800; color:#ccc;">v19.5</div>
+    <div style="font-size:9px; font-weight:800; color:#ccc;">v19.6</div>
     <div class="header-logo">KM7 <span style="font-weight:300; color:var(--km7-gold)">CAFÉ</span></div>
     <div class="header-user">NR</div>
 </header>
@@ -86,8 +90,8 @@
         <h5 class="fw-bold mb-3">Ventas</h5>
         <div class="d-flex gap-2 mb-3">
             <input type="text" id="busqHist" class="form-control border-0 bg-white shadow-sm" placeholder="Buscar..." oninput="renderHist()">
-            <button id="fEnt" class="btn btn-white shadow-sm" onclick="toggleF('entrega')"><i class="bi bi-truck"></i></button>
-            <button id="fPag" class="btn btn-white shadow-sm" onclick="toggleF('pago')"><i class="bi bi-cash-stack"></i></button>
+            <button id="fEnt" class="btn btn-filter shadow-sm" onclick="toggleF('entrega')"><i class="bi bi-truck"></i></button>
+            <button id="fPag" class="btn btn-filter shadow-sm" onclick="toggleF('pago')"><i class="bi bi-cash-stack"></i></button>
         </div>
         <div id="contenedorHistorial"></div>
     </div>
@@ -195,6 +199,7 @@
     }
 
     async function loadHist() { histData = await callAPI('getHistorial'); renderHist(); }
+    
     function renderHist() {
         const b = document.getElementById('busqHist').value.toLowerCase();
         document.getElementById('contenedorHistorial').innerHTML = histData
@@ -204,7 +209,10 @@
             .map(v => `
                 <div class="hist-card ${v.entrega==='Entregado'?'listo-entrega':'pend-entrega'}">
                     <div class="d-flex justify-content-between align-items-center">
-                        <b style="font-size:14px">${v.clienteNombre}</b>
+                        <div class="d-flex flex-column">
+                            <b style="font-size:14px">${v.clienteNombre}</b>
+                            <small class="text-muted" style="font-size:9px">${v.fecha}</small>
+                        </div>
                         <b style="font-size:14px">$${v.total}</b>
                     </div>
                     <div class="my-2 d-flex align-items-center">
@@ -218,6 +226,7 @@
                     </div>
                 </div>`).join('');
     }
+
     function shareVenta(id) {
         const v = histData.find(x => x.id === id); if(!v) return;
         const msg = `*KM7 COFFEE ROASTERS*\n------------------\n📅 *Fecha:* ${v.fecha}\n👤 *Cliente:* ${v.clienteNombre}\n☕ *Productos:* ${v.productos}\n📝 *Nota:* ${v.nota || '-'}\n💰 *Desc:* $${v.descuento || '0'}\n✅ *TOTAL:* $${v.total}\n------------------\n_¡Gracias por tu compra!_`;
@@ -236,7 +245,19 @@
     function ver(id, el) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section')); document.getElementById(id).classList.add('active-section'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
     function toggleMedioPago() { document.getElementById('divMedioPago').classList.toggle('hidden', document.getElementById('estadoPago').value !== 'Pagado'); }
     function toggleDeudas() { document.getElementById('listaDeudas').classList.toggle('hidden'); }
-    function toggleF(tipo) { if(tipo === 'entrega') { fEntAct = !fEntAct; document.getElementById('fEnt').classList.toggle('btn-filter-active', fEntAct); } if(tipo === 'pago') { fPagAct = !fPagAct; document.getElementById('fPag').classList.toggle('btn-filter-active', fPagAct); } renderHist(); }
+    
+    function toggleF(tipo) { 
+        if(tipo === 'entrega') { 
+            fEntAct = !fEntAct; 
+            document.getElementById('fEnt').classList.toggle('btn-filter-active', fEntAct); 
+        } 
+        if(tipo === 'pago') { 
+            fPagAct = !fPagAct; 
+            document.getElementById('fPag').classList.toggle('btn-filter-active', fPagAct); 
+        } 
+        renderHist(); 
+    }
+
     async function enviarVenta() {
         document.getElementById('loader').style.display='flex';
         const totalV = document.getElementById('totalVenta').innerText.replace(/\./g, '');
