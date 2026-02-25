@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Fleet v17.0</title>
+    <title>Km7 Fleet v17.1</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -45,9 +45,9 @@
             <button class="btn btn-sm btn-outline-dark rounded-pill" onclick="modCliente.show()">+ Cliente</button>
         </div>
         <div class="card-custom">
-            <label class="form-label-small"><i class="bi bi-person"></i> Cliente</label>
+            <label class="form-label-small">Cliente</label>
             <select id="clienteSel" class="form-select border-0 bg-light mb-3 rounded-3"></select>
-            <label class="form-label-small"><i class="bi bi-box-seam"></i> Producto</label>
+            <label class="form-label-small">Producto</label>
             <div class="d-flex gap-2 mb-3">
                 <select id="prodSel" class="form-select border-0 bg-light rounded-3"></select>
                 <input type="number" id="cant" class="form-control w-25 border-0 bg-light rounded-3 text-center" value="1">
@@ -95,23 +95,10 @@
 
     <div id="sec-caja" class="view-section">
         <div class="row g-2 mb-4">
-            <div class="col-6">
-                <div class="card-saldo bg-caja shadow-sm">
-                    <small class="opacity-75">EN CAJA</small>
-                    <h4 id="cajaSaldo" class="fw-bold m-0">$0</h4>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="card-saldo bg-pendiente shadow-sm" onclick="toggleDeudas()">
-                    <small class="opacity-75">A COBRAR</small>
-                    <h4 id="cajaPendiente" class="fw-bold m-0">$0</h4>
-                </div>
-            </div>
+            <div class="col-6"><div class="card-saldo bg-caja shadow-sm"><small class="opacity-75">EN CAJA</small><h4 id="cajaSaldo" class="fw-bold m-0">$0</h4></div></div>
+            <div class="col-6"><div class="card-saldo bg-pendiente shadow-sm" onclick="toggleDeudas()"><small class="opacity-75">A COBRAR</small><h4 id="cajaPendiente" class="fw-bold m-0">$0</h4></div></div>
         </div>
-        <div id="listaDeudas" class="mb-4 hidden">
-            <h6 class="fw-bold text-muted small">VENTAS PENDIENTES</h6>
-            <div id="contenedorDeudas"></div>
-        </div>
+        <div id="listaDeudas" class="mb-4 hidden"><h6 class="fw-bold text-muted small">VENTAS PENDIENTES</h6><div id="contenedorDeudas"></div></div>
         <h6 class="fw-bold text-muted small">MOVIMIENTOS DE CAJA</h6>
         <div id="listaMovs"></div>
     </div>
@@ -125,23 +112,29 @@
 </nav>
 
 <div class="modal fade" id="modLogCRM" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
-    <h5 id="logNombre" class="fw-bold mb-1"></h5>
+    <div class="d-flex justify-content-between align-items-start mb-1">
+        <h5 id="logNombre" class="fw-bold m-0"></h5>
+        <select id="logTemp" class="form-select form-select-sm border-0 bg-light w-auto" onchange="cambiarTermometro()">
+            <option value="frio">❄️ Frío</option>
+            <option value="tibio">⛅ Tibio</option>
+            <option value="caliente">🔥 Caliente</option>
+        </select>
+    </div>
     <p id="logContacto" class="text-muted small mb-3"></p>
     <hr>
     <label class="form-label-small">Nueva Gestión</label>
-    <textarea id="logGestion" class="form-control bg-light border-0 mb-2" rows="2" placeholder="¿Qué hablaste?"></textarea>
+    <textarea id="logGestion" class="form-control bg-light border-0 mb-2" rows="2" placeholder="Escribe aquí..."></textarea>
+    <label class="form-label-small">Próximo Contacto</label>
     <input type="date" id="logProxima" class="form-control bg-light border-0 mb-3">
     <button class="btn btn-km7 mb-4" onclick="guardarLog()">Guardar Gestión</button>
     
-    <h6 class="fw-bold small text-muted">HISTORIAL</h6>
+    <h6 class="fw-bold small text-muted">HISTORIAL DE GESTIONES</h6>
     <div id="logHistorial" style="max-height: 200px; overflow-y: auto;"></div>
 </div></div></div>
 
 <div class="modal fade" id="modMov" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4">
-    <input type="hidden" id="editMovId">
-    <h5 class="fw-bold mb-3">Editar Movimiento</h5>
-    <input type="text" id="editMovDesc" class="form-control mb-2 bg-light border-0" placeholder="Descripción">
-    <input type="number" id="editMovMonto" class="form-control mb-2 bg-light border-0" placeholder="Monto">
+    <input type="hidden" id="editMovId"><h5 class="fw-bold mb-3">Editar Movimiento</h5>
+    <input type="text" id="editMovDesc" class="form-control mb-2 bg-light border-0"><input type="number" id="editMovMonto" class="form-control mb-2 bg-light border-0">
     <select id="editMovMedio" class="form-select mb-3 bg-light border-0"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select>
     <div class="d-flex gap-2"><button class="btn btn-danger rounded-3" onclick="confirmarBorrarMov()">Borrar</button><button class="btn btn-km7 flex-grow-1" onclick="guardarEdicionMov()">Guardar</button></div>
 </div></div></div>
@@ -168,13 +161,14 @@
     const modMov = new bootstrap.Modal('#modMov');
     const modLogCRM = new bootstrap.Modal('#modLogCRM');
 
-    function callAPI(action, data = null, id = null) {
+    function callAPI(action, data = null, id = null, extra = null) {
         return new Promise((resolve) => {
             const cb = 'jsonp_' + Math.round(100000 * Math.random());
             window[cb] = (res) => { delete window[cb]; document.body.removeChild(s); resolve(res); };
             let url = `${API_URL}?action=${action}&callback=${cb}`;
             if (data) url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
             if (id) url += `&id=${id}`;
+            if (extra) url += `&temp=${extra}`;
             const s = document.createElement('script'); s.src = url; document.body.appendChild(s);
         });
     }
@@ -187,93 +181,85 @@
         document.getElementById('loader').style.display = 'none';
     };
 
-    function toggleMedioPago() {
-        const estado = document.getElementById('estadoPago').value;
-        document.getElementById('divMedioPago').classList.toggle('hidden', estado !== 'Pagado');
-    }
-
-    function addItem() {
-        const clie = clientes.find(c => c[0] == document.getElementById('clienteSel').value);
-        const prod = productos.find(p => p[0] == document.getElementById('prodSel').value);
-        const precio = parseFloat(clie && clie[2] === "Mayorista" ? prod[6] : prod[5]);
-        const cant = parseFloat(document.getElementById('cant').value);
-        carrito.push({ idProd: prod[0], nombre: prod[1], cant, precio, subtotal: cant * precio });
-        renderCar();
-    }
-
-    function renderCar() {
-        let h = '', subtotalTotal = 0;
-        carrito.forEach((i, idx) => { subtotalTotal += i.subtotal; h += `<div class="card-custom py-2 d-flex justify-content-between align-items-center mb-2 shadow-sm"><span><b>${i.nombre}</b> <small class="text-muted">x${i.cant}</small></span><span><b>$${i.subtotal.toLocaleString()}</b> <i class="bi bi-x-circle text-danger ms-2" onclick="carrito.splice(${idx},1);renderCar()"></i></span></div>`; });
-        const desc = parseFloat(document.getElementById('descuentoVenta').value) || 0;
-        document.getElementById('listaItems').innerHTML = h;
-        document.getElementById('totalVenta').innerText = Math.max(0, subtotalTotal - desc).toLocaleString();
-    }
-
-    async function enviarVenta() {
-        if(!carrito.length) return alert("Carrito vacío");
-        document.getElementById('loader').style.display = 'flex';
-        const d = { idCliente: document.getElementById('clienteSel').value, total: document.getElementById('totalVenta').innerText, descuento: document.getElementById('descuentoVenta').value || 0, estadoPago: document.getElementById('estadoPago').value, estadoEntrega: document.getElementById('estadoEntrega').value, medioPago: document.getElementById('estadoPago').value === 'Pagado' ? document.getElementById('medioPago').value : '', nota: document.getElementById('notaVenta').value, items: carrito };
-        await callAPI('registrarVenta', d);
-        location.reload();
-    }
-
-    async function loadHist() {
-        document.getElementById('contenedorHistorial').innerHTML = '<p class="text-center p-5 text-muted">Cargando ventas...</p>';
-        const d = await callAPI('getHistorial');
-        document.getElementById('contenedorHistorial').innerHTML = d.map(v => `<div class="card-custom"><div class="d-flex justify-content-between mb-1"><b>${v.clienteNombre}</b> <small class="text-muted">${v.fecha.split('T')[0]}</small></div><div class="d-flex justify-content-between align-items-center"><div><span class="badge ${v.pago=='Pagado'?'bg-success':'bg-danger'}" style="font-size:0.6rem">${v.pago}</span> <span class="badge ${v.entrega=='Entregado'?'bg-info':'bg-warning text-dark'}" style="font-size:0.6rem; margin-left:4px;">${v.entrega}</span></div><b class="text-dark">$${v.total}</b></div></div>`).join('');
-    }
-
     async function loadCRM() {
+        // Recargar prospectos primero para tener la info fresca
+        const d = await callAPI('getFormData');
+        prospectos = d.prospectos;
         document.getElementById('listaP').innerHTML = prospectos.map(p => `
-            <div class="card-custom border-start border-4 ${p[7]=='caliente'?'border-danger': p[7]=='tibio'?'border-warning':'border-info'}" onclick="abrirProspecto('${p[0]}','${p[1]}','${p[2]}')">
+            <div class="card-custom border-start border-4 ${p[7]=='caliente'?'border-danger': p[7]=='tibio'?'border-warning':'border-info'}" onclick="abrirProspecto('${p[0]}','${p[1]}','${p[2]}','${p[7]}')">
                 <div class="d-flex justify-content-between"><b>${p[1]}</b> <small class="badge bg-light text-dark">${p[7].toUpperCase()}</small></div>
                 <div class="text-muted small">${p[2]} | ${p[3]}</div>
             </div>`).join('');
     }
 
-    async function abrirProspecto(id, nombre, contacto) {
+    async function abrirProspecto(id, nombre, contacto, temp) {
         currentProspectoId = id;
         document.getElementById('logNombre').innerText = nombre;
         document.getElementById('logContacto').innerText = contacto;
+        document.getElementById('logTemp').value = temp;
         document.getElementById('logGestion').value = "";
-        document.getElementById('logHistorial').innerHTML = "Cargando historial...";
+        document.getElementById('logHistorial').innerHTML = "Cargando...";
         modLogCRM.show();
         const logs = await callAPI('getSeguimientos', null, id);
         document.getElementById('logHistorial').innerHTML = logs.map(l => `
             <div class="log-item">
-                <div class="fw-bold mb-1" style="font-size:0.7rem;">${l[2].split(' ')[0]}</div>
+                <div class="fw-bold mb-1" style="font-size:0.7rem;">${l[2]}</div>
                 <div>${l[3]}</div>
                 ${l[4] ? `<div class="text-primary mt-1" style="font-size:0.7rem;">Próxima: ${l[4]}</div>` : ''}
-            </div>`).join('') || '<p class="text-muted small">Sin gestiones previas.</p>';
+            </div>`).join('') || '<p class="text-muted small">Sin gestiones.</p>';
+    }
+
+    async function cambiarTermometro() {
+        const nuevaTemp = document.getElementById('logTemp').value;
+        await callAPI('actualizarTermometro', null, currentProspectoId, nuevaTemp);
+        loadCRM();
     }
 
     async function guardarLog() {
         const gestion = document.getElementById('logGestion').value;
-        if(!gestion) return alert("Escribí qué gestionaste");
-        const d = { idProspecto: currentProspectoId, gestion: gestion, proxima: document.getElementById('logProxima').value };
-        await callAPI('agregarLogCRM', d);
-        abrirProspecto(currentProspectoId, document.getElementById('logNombre').innerText, document.getElementById('logContacto').innerText);
+        if(!gestion) return alert("Escribí la gestión");
+        await callAPI('agregarLogCRM', { idProspecto: currentProspectoId, gestion: gestion, proxima: document.getElementById('logProxima').value });
+        abrirProspecto(currentProspectoId, document.getElementById('logNombre').innerText, document.getElementById('logContacto').innerText, document.getElementById('logTemp').value);
     }
 
+    // Funciones heredadas (Ventas, Caja, etc.)
+    function toggleMedioPago() { document.getElementById('divMedioPago').classList.toggle('hidden', document.getElementById('estadoPago').value !== 'Pagado'); }
+    function addItem() { 
+        const clie = clientes.find(c => c[0] == document.getElementById('clienteSel').value);
+        const prod = productos.find(p => p[0] == document.getElementById('prodSel').value);
+        const p = parseFloat(clie && clie[2] === "Mayorista" ? prod[6] : prod[5]);
+        const c = parseFloat(document.getElementById('cant').value);
+        carrito.push({ idProd: prod[0], nombre: prod[1], cant: c, precio: p, subtotal: c * p });
+        renderCar();
+    }
+    function renderCar() {
+        let h = '', st = 0;
+        carrito.forEach((i, idx) => { st += i.subtotal; h += `<div class="card-custom py-2 d-flex justify-content-between align-items-center mb-2 shadow-sm"><span><b>${i.nombre}</b> <small class="text-muted">x${i.cant}</small></span><span><b>$${i.subtotal.toLocaleString()}</b> <i class="bi bi-x-circle text-danger ms-2" onclick="carrito.splice(${idx},1);renderCar()"></i></span></div>`; });
+        const desc = parseFloat(document.getElementById('descuentoVenta').value) || 0;
+        document.getElementById('listaItems').innerHTML = h;
+        document.getElementById('totalVenta').innerText = Math.max(0, st - desc).toLocaleString();
+    }
+    async function enviarVenta() {
+        document.getElementById('loader').style.display = 'flex';
+        await callAPI('registrarVenta', { idCliente: document.getElementById('clienteSel').value, total: document.getElementById('totalVenta').innerText, descuento: document.getElementById('descuentoVenta').value || 0, estadoPago: document.getElementById('estadoPago').value, estadoEntrega: document.getElementById('estadoEntrega').value, medioPago: document.getElementById('estadoPago').value === 'Pagado' ? document.getElementById('medioPago').value : '', nota: document.getElementById('notaVenta').value, items: carrito });
+        location.reload();
+    }
+    async function loadHist() {
+        const d = await callAPI('getHistorial');
+        document.getElementById('contenedorHistorial').innerHTML = d.map(v => `<div class="card-custom"><div class="d-flex justify-content-between mb-1"><b>${v.clienteNombre}</b> <small class="text-muted">${v.fecha.split('T')[0]}</small></div><div class="d-flex justify-content-between align-items-center"><div><span class="badge ${v.pago=='Pagado'?'bg-success':'bg-danger'}" style="font-size:0.6rem">${v.pago}</span> <span class="badge ${v.entrega=='Entregado'?'bg-info':'bg-warning text-dark'}" style="font-size:0.6rem; margin-left:4px;">${v.entrega}</span></div><b class="text-dark">$${v.total}</b></div></div>`).join('');
+    }
     async function loadCaja() {
         const d = await callAPI('getCaja');
         document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
         document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
-        document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `
-            <div class="mov-item shadow-sm d-flex justify-content-between align-items-center" onclick="abrirEdicionMov('${m[0]}','${m[3]}','${m[4]}','${m[6]}')">
-                <div><div class="mov-sub">${m[1].split(' ')[0]} • ${m[2]}</div><div class="mov-info">${m[3]}</div><span class="badge-medio">${m[6] || 'Efectivo'}</span></div>
-                <div class="text-end"><h6 class="m-0 fw-bold ${m[2]=='Ingreso'?'text-success':'text-danger'}">${m[2]=='Ingreso'?'+':'-'}$${m[4]}</h6></div>
-            </div>`).join('');
+        document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `<div class="mov-item shadow-sm d-flex justify-content-between align-items-center" onclick="abrirEdicionMov('${m[0]}','${m[3]}','${m[4]}','${m[6]}')"><div><div class="mov-sub">${m[1].split(' ')[0]} • ${m[2]}</div><div class="mov-info">${m[3]}</div><span class="badge-medio">${m[6] || 'Efectivo'}</span></div><div class="text-end"><h6 class="m-0 fw-bold ${m[2]=='Ingreso'?'text-success':'text-danger'}">${m[2]=='Ingreso'?'+':'-'}$${m[4]}</h6></div></div>`).join('');
     }
-
     function ver(id, el) {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section'));
         document.getElementById(id).classList.add('active-section');
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
     }
-    
-    // Funciones auxiliares heredadas de v16.0
     function toggleDeudas() { document.getElementById('listaDeudas').classList.toggle('hidden'); }
     function abrirEdicionMov(id, desc, monto, medio) { document.getElementById('editMovId').value = id; document.getElementById('editMovDesc').value = desc; document.getElementById('editMovMonto').value = monto.replace(/[$.]/g, '').replace(',', '.'); document.getElementById('editMovMedio').value = medio || 'Efectivo'; modMov.show(); }
     async function guardarEdicionMov() { await callAPI('modificarMovimiento', { id: document.getElementById('editMovId').value, descripcion: document.getElementById('editMovDesc').value, monto: document.getElementById('editMovMonto').value, medio: document.getElementById('editMovMedio').value }); modMov.hide(); loadCaja(); }
