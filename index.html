@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Fleet v15.4</title>
+    <title>Km7 Fleet v16.0</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -17,8 +17,15 @@
         .active-section { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .card-custom { background: white; border-radius: 18px; padding: 18px; margin-bottom: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
+        .card-saldo { border-radius: 20px; padding: 20px; color: white; transition: 0.3s; cursor: pointer; border: none; }
+        .bg-caja { background: linear-gradient(135deg, #4e342e, #2b1d1a); }
+        .bg-pendiente { background: linear-gradient(135deg, #c6a300, #8a7100); }
         .btn-km7 { background: var(--km7-brown); color: white; border-radius: 12px; font-weight: 600; padding: 12px; border: none; width: 100%; }
         .form-label-small { font-size: 0.7rem; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .mov-item { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; border-left: 5px solid #4e342e; }
+        .mov-info { font-size: 0.85rem; color: #333; font-weight: 600; }
+        .mov-sub { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+        .badge-medio { font-size: 0.6rem; background: #eee; padding: 2px 6px; border-radius: 5px; color: #666; }
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
         .hidden { display: none; }
     </style>
@@ -36,54 +43,36 @@
             <h4 class="fw-bold m-0">☕ Nueva Venta</h4>
             <button class="btn btn-sm btn-outline-dark rounded-pill" onclick="modCliente.show()">+ Cliente</button>
         </div>
-        
         <div class="card-custom">
             <label class="form-label-small"><i class="bi bi-person"></i> Cliente</label>
             <select id="clienteSel" class="form-select border-0 bg-light mb-3 rounded-3"></select>
-            
             <label class="form-label-small"><i class="bi bi-box-seam"></i> Producto</label>
             <div class="d-flex gap-2 mb-3">
                 <select id="prodSel" class="form-select border-0 bg-light rounded-3"></select>
                 <input type="number" id="cant" class="form-control w-25 border-0 bg-light rounded-3 text-center" value="1">
                 <button class="btn btn-dark rounded-3" onclick="addItem()"><i class="bi bi-plus-lg"></i></button>
             </div>
-
             <div class="row">
                 <div class="col-6">
-                    <label class="form-label-small">Estado Entrega</label>
-                    <select id="estadoEntrega" class="form-select border-0 bg-light rounded-3">
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Entregado">Entregado</option>
-                    </select>
+                    <label class="form-label-small">Entrega</label>
+                    <select id="estadoEntrega" class="form-select border-0 bg-light rounded-3"><option>Pendiente</option><option>Entregado</option></select>
                 </div>
                 <div class="col-6">
-                    <label class="form-label-small">Estado Pago</label>
-                    <select id="estadoPago" class="form-select border-0 bg-light rounded-3" onchange="toggleMedioPago()">
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Pagado">Pagado</option>
-                    </select>
+                    <label class="form-label-small">Pago</label>
+                    <select id="estadoPago" class="form-select border-0 bg-light rounded-3" onchange="toggleMedioPago()"><option>Pendiente</option><option>Pagado</option></select>
                 </div>
             </div>
-
             <div id="divMedioPago" class="mt-3 hidden">
                 <label class="form-label-small">Medio de Pago</label>
-                <select id="medioPago" class="form-select border-0 bg-light rounded-3">
-                    <option value="Efectivo">Efectivo</option>
-                    <option value="Transferencia">Transferencia</option>
-                    <option value="Tarjeta">Tarjeta</option>
-                </select>
+                <select id="medioPago" class="form-select border-0 bg-light rounded-3"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select>
             </div>
-
             <div class="mt-3">
                 <label class="form-label-small">Descuento ($)</label>
                 <input type="number" id="descuentoVenta" class="form-control border-0 bg-light rounded-3" placeholder="0" oninput="renderCar()">
             </div>
-
             <input type="text" id="notaVenta" class="form-control border-0 bg-light mt-3 rounded-3" placeholder="Nota opcional...">
         </div>
-
         <div id="listaItems"></div>
-
         <div class="card-custom bg-dark text-white d-flex justify-content-between align-items-center mt-3 shadow-lg">
             <div><small class="opacity-75">Total Final</small><h3 class="m-0 fw-bold">$<span id="totalVenta">0</span></h3></div>
             <button class="btn btn-primary px-4 py-2 fw-bold" style="border-radius: 12px;" onclick="enviarVenta()">REGISTRAR</button>
@@ -96,17 +85,34 @@
     </div>
 
     <div id="sec-crm" class="view-section">
-        <h4 class="fw-bold mb-4">👥 CRM</h4>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold m-0">👥 CRM</h4>
+            <button class="btn btn-dark btn-sm rounded-pill" onclick="modProspecto.show()">+ Nuevo</button>
+        </div>
         <div id="listaP"></div>
     </div>
 
     <div id="sec-caja" class="view-section">
-        <h4 class="fw-bold mb-4">💰 Caja</h4>
-        <div class="card-custom text-white text-center shadow-lg" style="background: var(--km7-brown);">
-            <small class="opacity-75">SALDO ACTUAL</small>
-            <h1 id="cajaSaldo" class="fw-bold m-0">$0</h1>
+        <div class="row g-2 mb-4">
+            <div class="col-6">
+                <div class="card-saldo bg-caja shadow-sm">
+                    <small class="opacity-75">EN CAJA</small>
+                    <h4 id="cajaSaldo" class="fw-bold m-0">$0</h4>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card-saldo bg-pendiente shadow-sm" onclick="toggleDeudas()">
+                    <small class="opacity-75">A COBRAR</small>
+                    <h4 id="cajaPendiente" class="fw-bold m-0">$0</h4>
+                </div>
+            </div>
         </div>
-        <div id="listaMovs" class="mt-3"></div>
+        <div id="listaDeudas" class="mb-4 hidden">
+            <h6 class="fw-bold text-muted small">VENTAS PENDIENTES</h6>
+            <div id="contenedorDeudas"></div>
+        </div>
+        <h6 class="fw-bold text-muted small">MOVIMIENTOS DE CAJA</h6>
+        <div id="listaMovs"></div>
     </div>
 </div>
 
@@ -117,12 +123,31 @@
     <button class="nav-item" onclick="ver('sec-caja', this); loadCaja();"><i class="bi bi-wallet2"></i>Caja</button>
 </nav>
 
+<div class="modal fade" id="modMov" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4">
+    <input type="hidden" id="editMovId">
+    <h5 class="fw-bold mb-3">Editar Movimiento</h5>
+    <input type="text" id="editMovDesc" class="form-control mb-2 bg-light border-0" placeholder="Descripción">
+    <input type="number" id="editMovMonto" class="form-control mb-2 bg-light border-0" placeholder="Monto">
+    <select id="editMovMedio" class="form-select mb-3 bg-light border-0"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select>
+    <div class="d-flex gap-2">
+        <button class="btn btn-danger rounded-3" onclick="confirmarBorrarMov()">Borrar</button>
+        <button class="btn btn-km7 flex-grow-1" onclick="guardarEdicionMov()">Guardar</button>
+    </div>
+</div></div></div>
+
 <div class="modal fade" id="modCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
     <h5 class="fw-bold mb-3">Nuevo Cliente</h5>
-    <input type="text" id="ncNombre" class="form-control mb-2 bg-light border-0" placeholder="Nombre">
-    <select id="ncCat" class="form-select mb-2 bg-light border-0"><option>Minorista</option><option>Mayorista</option></select>
-    <input type="tel" id="ncTel" class="form-control mb-3 bg-light border-0" placeholder="Teléfono">
-    <button class="btn btn-km7" onclick="crearClie()">Guardar</button>
+    <input type="text" id="ncNombre" class="form-control mb-2 bg-light border-0" placeholder="Nombre"><select id="ncCat" class="form-select mb-2 bg-light border-0"><option>Minorista</option><option>Mayorista</option></select>
+    <input type="tel" id="ncTel" class="form-control mb-3 bg-light border-0" placeholder="Teléfono"><button class="btn btn-km7" onclick="crearClie()">Guardar</button>
+</div></div></div>
+
+<div class="modal fade" id="modProspecto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
+    <h5 class="fw-bold mb-3">Nuevo Prospecto</h5>
+    <input type="text" id="npNombre" class="form-control mb-2 bg-light border-0" placeholder="Nombre lugar">
+    <input type="text" id="npContacto" class="form-control mb-2 bg-light border-0" placeholder="Contacto">
+    <input type="tel" id="npTel" class="form-control mb-2 bg-light border-0" placeholder="Tel">
+    <select id="npTemp" class="form-select mb-3 bg-light border-0"><option value="frio">❄️ Frío</option><option value="tibio">⛅ Tibio</option><option value="caliente">🔥 Caliente</option></select>
+    <button class="btn btn-km7" onclick="crearPrsp()">Añadir</button>
 </div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -130,6 +155,8 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbxq69gkGczhOf683lUZXDpPPAofrcZSOdhFBvijAou44ZGFYadgeIrH_zG_SwlJtBuc/exec";
     let productos = [], clientes = [], prospectos = [], carrito = [];
     const modCliente = new bootstrap.Modal('#modCliente');
+    const modProspecto = new bootstrap.Modal('#modProspecto');
+    const modMov = new bootstrap.Modal('#modMov');
 
     function callAPI(action, data = null) {
         return new Promise((resolve) => {
@@ -154,6 +181,10 @@
         document.getElementById('divMedioPago').classList.toggle('hidden', estado !== 'Pagado');
     }
 
+    function toggleDeudas() {
+        document.getElementById('listaDeudas').classList.toggle('hidden');
+    }
+
     function addItem() {
         const clie = clientes.find(c => c[0] == document.getElementById('clienteSel').value);
         const prod = productos.find(p => p[0] == document.getElementById('prodSel').value);
@@ -174,7 +205,6 @@
         });
         const desc = parseFloat(document.getElementById('descuentoVenta').value) || 0;
         const total = Math.max(0, subtotalTotal - desc);
-        
         document.getElementById('listaItems').innerHTML = h;
         document.getElementById('totalVenta').innerText = total.toLocaleString();
     }
@@ -182,7 +212,6 @@
     async function enviarVenta() {
         if(!carrito.length) return alert("Carrito vacío");
         document.getElementById('loader').style.display = 'flex';
-        
         const d = { 
             idCliente: document.getElementById('clienteSel').value, 
             total: document.getElementById('totalVenta').innerText, 
@@ -193,9 +222,7 @@
             nota: document.getElementById('notaVenta').value, 
             items: carrito 
         };
-
-        const res = await callAPI('registrarVenta', d);
-        alert(res.message);
+        await callAPI('registrarVenta', d);
         location.reload();
     }
 
@@ -205,8 +232,11 @@
         document.getElementById('contenedorHistorial').innerHTML = d.map(v => `
             <div class="card-custom">
                 <div class="d-flex justify-content-between mb-1"><b>${v.clienteNombre}</b> <small class="text-muted">${v.fecha.split('T')[0]}</small></div>
-                <div class="d-flex justify-content-between">
-                    <span class="badge ${v.pago=='Pagado'?'bg-success':'bg-danger'}">${v.pago}</span>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge ${v.pago=='Pagado'?'bg-success':'bg-danger'}" style="font-size:0.6rem">${v.pago}</span>
+                        <span class="badge ${v.entrega=='Entregado'?'bg-info':'bg-warning text-dark'}" style="font-size:0.6rem; margin-left:4px;">${v.entrega}</span>
+                    </div>
                     <b class="text-dark">$${v.total}</b>
                 </div>
             </div>`).join('');
@@ -214,18 +244,68 @@
 
     async function loadCRM() {
         document.getElementById('listaP').innerHTML = prospectos.map(p => `
-            <div class="card-custom border-start border-4 ${p[7]=='caliente'?'border-danger':'border-info'}">
-                <b>${p[1]}</b><br><small>${p[2]}</small>
+            <div class="card-custom border-start border-4 ${p[7]=='caliente'?'border-danger': p[7]=='tibio'?'border-warning':'border-info'}">
+                <div class="d-flex justify-content-between"><b>${p[1]}</b> <small>${p[7].toUpperCase()}</small></div>
+                <div class="text-muted small">${p[2]} | ${p[3]}</div>
             </div>`).join('');
     }
 
     async function loadCaja() {
         const d = await callAPI('getCaja');
         document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
-        document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `
-            <div class="card-custom py-2 d-flex justify-content-between align-items-center mb-2">
-                <small>${m[3]}</small><b>$${m[4]}</b>
+        document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
+        
+        document.getElementById('contenedorDeudas').innerHTML = d.detallesPendientes.map(p => `
+            <div class="card-custom py-2 mb-2 border-start border-3 border-warning">
+                <div class="d-flex justify-content-between"><span class="small"><b>${p.cliente}</b></span><b>$${p.monto.toLocaleString()}</b></div>
             </div>`).join('');
+
+        document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `
+            <div class="mov-item shadow-sm d-flex justify-content-between align-items-center" onclick="abrirEdicionMov('${m[0]}','${m[3]}','${m[4]}','${m[6]}')">
+                <div>
+                    <div class="mov-sub">${m[1].split(' ')[0]} • ${m[2]}</div>
+                    <div class="mov-info">${m[3]}</div>
+                    <span class="badge-medio">${m[6] || 'Efectivo'}</span>
+                </div>
+                <div class="text-end">
+                    <h6 class="m-0 fw-bold ${m[2]=='Ingreso'?'text-success':'text-danger'}">${m[2]=='Ingreso'?'+':'-'}$${m[4]}</h6>
+                </div>
+            </div>`).join('');
+    }
+
+    function abrirEdicionMov(id, desc, monto, medio) {
+        document.getElementById('editMovId').value = id;
+        document.getElementById('editMovDesc').value = desc;
+        document.getElementById('editMovMonto').value = monto.replace(/[$.]/g, '').replace(',', '.');
+        document.getElementById('editMovMedio').value = medio || 'Efectivo';
+        modMov.show();
+    }
+
+    async function guardarEdicionMov() {
+        const d = { id: document.getElementById('editMovId').value, descripcion: document.getElementById('editMovDesc').value, monto: document.getElementById('editMovMonto').value, medio: document.getElementById('editMovMedio').value };
+        await callAPI('modificarMovimiento', d);
+        modMov.hide();
+        loadCaja();
+    }
+
+    async function confirmarBorrarMov() {
+        if(!confirm("¿Borrar movimiento?")) return;
+        await callAPI('borrarMovimiento', {id: document.getElementById('editMovId').value});
+        modMov.hide();
+        loadCaja();
+    }
+
+    async function crearClie() {
+        const d = { nombre: document.getElementById('ncNombre').value, cat: document.getElementById('ncCat').value, tel: document.getElementById('ncTel').value };
+        await callAPI('crearCliente', d);
+        location.reload();
+    }
+
+    async function crearPrsp() {
+        const d = { nombre: document.getElementById('npNombre').value, contacto: document.getElementById('npContacto').value, tel: document.getElementById('npTel').value, temp: document.getElementById('npTemp').value };
+        await callAPI('crearProspecto', d);
+        modProspecto.hide();
+        loadCRM();
     }
 
     function ver(id, el) {
@@ -233,12 +313,6 @@
         document.getElementById(id).classList.add('active-section');
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         el.classList.add('active');
-    }
-
-    async function crearClie() {
-        const d = { nombre: document.getElementById('ncNombre').value, cat: document.getElementById('ncCat').value, tel: document.getElementById('ncTel').value };
-        await callAPI('crearCliente', d);
-        location.reload();
     }
 </script>
 </body>
