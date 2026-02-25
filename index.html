@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Fleet v17.5</title>
+    <title>Km7 Fleet v17.6</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -60,7 +60,10 @@
             <div class="col-6"><div class="card-saldo bg-caja shadow-sm"><small class="opacity-75">EN CAJA</small><h4 id="cajaSaldo" class="fw-bold m-0">$0</h4></div></div>
             <div class="col-6"><div class="card-saldo bg-pendiente shadow-sm" onclick="toggleDeudas()"><small class="opacity-75">A COBRAR</small><h4 id="cajaPendiente" class="fw-bold m-0">$0</h4></div></div>
         </div>
-        <div id="listaDeudas" class="mb-4 hidden"><h6 class="fw-bold text-muted small">VENTAS PENDIENTES</h6><div id="contenedorDeudas"></div></div>
+        <div id="listaDeudas" class="mb-4 hidden">
+            <h6 class="fw-bold text-muted small">VENTAS PENDIENTES DE COBRO</h6>
+            <div id="contenedorDeudas"></div>
+        </div>
         <h6 class="fw-bold text-muted small">MOVIMIENTOS DE CAJA</h6>
         <div id="listaMovs"></div>
     </div>
@@ -172,6 +175,8 @@
         const d = await callAPI('getCaja');
         document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
         document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
+        
+        // Renderizar Movimientos
         document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => {
             let notaHtml = m.notaReal ? `<br><span class="mov-nota">• ${m.notaReal}</span>` : "";
             return `
@@ -181,11 +186,21 @@
                     <div class="mov-info">${m.clienteReal}${notaHtml}</div>
                     <span class="badge-medio">${m.medio || 'Efectivo'}</span>
                 </div>
-                <div class="text-end">
-                    <h6 class="m-0 fw-bold ${m.tipo=='Ingreso'?'text-success':'text-danger'}">${m.tipo=='Ingreso'?'+':'-'}$${m.monto}</h6>
-                </div>
+                <div class="text-end"><h6 class="m-0 fw-bold ${m.tipo=='Ingreso'?'text-success':'text-danger'}">${m.tipo=='Ingreso'?'+':'-'}$${m.monto}</h6></div>
             </div>`;
         }).join('');
+
+        // Renderizar Pendientes de Cobro (AQUÍ ESTABA EL ERROR)
+        document.getElementById('contenedorDeudas').innerHTML = d.detallesPendientes.map(p => `
+            <div class="card-custom py-2 mb-2 border-start border-3 border-warning shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold" style="font-size:0.85rem">${p.cliente}</div>
+                        <div class="text-muted" style="font-size:0.7rem">${p.fecha.split('T')[0]} ${p.nota ? '• ' + p.nota : ''}</div>
+                    </div>
+                    <div class="text-end"><b class="text-dark">$${p.monto}</b></div>
+                </div>
+            </div>`).join('') || '<p class="text-center text-muted py-3">No hay cobros pendientes</p>';
     }
 
     function ver(id, el) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section')); document.getElementById(id).classList.add('active-section'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
