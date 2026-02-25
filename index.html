@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Fleet v17.1</title>
+    <title>Km7 Fleet v17.2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -128,7 +128,7 @@
     <input type="date" id="logProxima" class="form-control bg-light border-0 mb-3">
     <button class="btn btn-km7 mb-4" onclick="guardarLog()">Guardar Gestión</button>
     
-    <h6 class="fw-bold small text-muted">HISTORIAL DE GESTIONES</h6>
+    <h6 class="fw-bold small text-muted">HISTORIAL DE GESTIONES (EVENTOS)</h6>
     <div id="logHistorial" style="max-height: 200px; overflow-y: auto;"></div>
 </div></div></div>
 
@@ -182,7 +182,6 @@
     };
 
     async function loadCRM() {
-        // Recargar prospectos primero para tener la info fresca
         const d = await callAPI('getFormData');
         prospectos = d.prospectos;
         document.getElementById('listaP').innerHTML = prospectos.map(p => `
@@ -201,11 +200,12 @@
         document.getElementById('logHistorial').innerHTML = "Cargando...";
         modLogCRM.show();
         const logs = await callAPI('getSeguimientos', null, id);
+        // Según tu estructura: logs[2] es Fecha, logs[4] es Gestión (Col E), logs[5] es Próxima
         document.getElementById('logHistorial').innerHTML = logs.map(l => `
             <div class="log-item">
                 <div class="fw-bold mb-1" style="font-size:0.7rem;">${l[2]}</div>
-                <div>${l[3]}</div>
-                ${l[4] ? `<div class="text-primary mt-1" style="font-size:0.7rem;">Próxima: ${l[4]}</div>` : ''}
+                <div>${l[4]}</div> 
+                ${l[5] ? `<div class="text-primary mt-1" style="font-size:0.7rem;">Próxima: ${l[5]}</div>` : ''}
             </div>`).join('') || '<p class="text-muted small">Sin gestiones.</p>';
     }
 
@@ -222,7 +222,7 @@
         abrirProspecto(currentProspectoId, document.getElementById('logNombre').innerText, document.getElementById('logContacto').innerText, document.getElementById('logTemp').value);
     }
 
-    // Funciones heredadas (Ventas, Caja, etc.)
+    // --- RESTO DE FUNCIONES MANTENIDAS ---
     function toggleMedioPago() { document.getElementById('divMedioPago').classList.toggle('hidden', document.getElementById('estadoPago').value !== 'Pagado'); }
     function addItem() { 
         const clie = clientes.find(c => c[0] == document.getElementById('clienteSel').value);
