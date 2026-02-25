@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Fleet v19.7</title>
+    <title>Km7 Fleet v19.8</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -47,7 +47,7 @@
 <body>
 
 <header class="app-header">
-    <div style="font-size:9px; font-weight:800; color:#ccc;">v19.7</div>
+    <div style="font-size:9px; font-weight:800; color:#ccc;">v19.8</div>
     <div class="header-logo">KM7 <span style="font-weight:300; color:var(--km7-gold)">CAFÉ</span></div>
     <div class="header-user">NR</div>
 </header>
@@ -177,7 +177,6 @@
         document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
         document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
         
-        // Carga el detalle en el modal de deudas
         document.getElementById('contDeudas').innerHTML = d.detallesPendientes.length > 0 
             ? d.detallesPendientes.map(p => `<div class="d-flex justify-content-between border-bottom py-2"><span style="font-size:13px">${p.cliente}</span><b style="font-size:13px">$${p.monto}</b></div>`).join('')
             : '<p class="text-center text-muted">No hay deudas pendientes</p>';
