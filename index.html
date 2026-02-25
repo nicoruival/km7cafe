@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Fleet v18.1</title>
+    <title>Km7 Fleet v18.2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -12,65 +12,84 @@
             --km7-gold: #BC955C; 
             --km7-bg: #FAF9F6;
             --km7-card: #FFFFFF;
+            --temp-frio: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+            --temp-tibio: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+            --temp-caliente: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
         }
         
-        body { background: var(--km7-bg); padding-bottom: 100px; padding-top: 70px; font-family: 'Segoe UI', system-ui, sans-serif; color: var(--km7-coffee); }
+        body { background: var(--km7-bg); padding-bottom: 110px; padding-top: 75px; font-family: 'Segoe UI', system-ui, sans-serif; color: var(--km7-coffee); }
 
-        /* HEADER REDISEÑADO */
+        /* HEADER */
         .app-header {
             position: fixed; top: 0; width: 100%; height: 65px;
-            background: rgba(250, 249, 246, 0.9);
-            backdrop-filter: blur(10px);
+            background: rgba(250, 249, 246, 0.85); backdrop-filter: blur(12px);
             z-index: 1050; display: flex; align-items: center;
             justify-content: space-between; padding: 0 20px;
             border-bottom: 1px solid rgba(44, 27, 14, 0.05);
         }
-        .header-ver { font-size: 10px; font-weight: 700; color: #bbb; text-transform: uppercase; letter-spacing: 1px; }
+        .header-ver { font-size: 9px; font-weight: 800; color: #ccc; text-transform: uppercase; letter-spacing: 1.5px; }
         .header-logo { height: 32px; font-weight: 900; letter-spacing: -1px; color: var(--km7-coffee); }
         .header-user { 
-            width: 35px; height: 35px; background: var(--km7-coffee); 
-            color: white; border-radius: 10px; display: flex; 
-            align-items: center; justify-content: center; 
-            font-size: 12px; font-weight: bold; border: 2px solid var(--km7-gold);
+            width: 36px; height: 36px; background: var(--km7-coffee); color: white; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; border: 2px solid var(--km7-gold);
         }
 
-        /* BARRA NAVEGACIÓN INFERIOR REDISEÑADA */
+        /* CRM REDESIGN */
+        .crm-card {
+            background: var(--km7-card); border-radius: 20px; padding: 18px; margin-bottom: 16px;
+            border: none; box-shadow: 0 8px 20px rgba(44, 27, 14, 0.04);
+            transition: 0.3s; position: relative; overflow: hidden;
+        }
+        .crm-card:active { transform: scale(0.97); }
+        .temp-pill {
+            padding: 4px 12px; border-radius: 20px; font-size: 9px; font-weight: 800;
+            text-transform: uppercase; color: white; letter-spacing: 0.5px;
+        }
+        .bg-frio { background: var(--temp-frio); }
+        .bg-tibio { background: var(--temp-tibio); color: #555; }
+        .bg-caliente { background: var(--temp-caliente); }
+        
+        .crm-info-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: #888; font-size: 12px; }
+        .crm-info-row i { color: var(--km7-gold); font-size: 14px; }
+
+        /* FLOATING ACTION BUTTON */
+        .fab {
+            position: fixed; bottom: 100px; right: 25px;
+            width: 55px; height: 55px; background: var(--km7-coffee);
+            color: white; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 24px;
+            box-shadow: 0 8px 20px rgba(44, 27, 14, 0.3); border: none; z-index: 1040;
+        }
+
+        /* NAV BOTTOM */
         .nav-bottom { 
             position: fixed; bottom: 20px; left: 20px; right: 20px;
             height: 65px; background: var(--km7-coffee); 
-            display: flex; border-radius: 20px; z-index: 1000; 
-            box-shadow: 0 10px 25px rgba(44, 27, 14, 0.2);
-            padding: 0 10px;
+            display: flex; border-radius: 22px; z-index: 1000; 
+            box-shadow: 0 12px 30px rgba(44, 27, 14, 0.25); padding: 0 10px;
         }
         .nav-item { 
-            flex: 1; text-align: center; padding: 8px; color: rgba(255,255,255,0.4); 
+            flex: 1; text-align: center; color: rgba(255,255,255,0.35); 
             border: none; background: none; font-size: 10px; 
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .nav-item i { font-size: 1.4rem; margin-bottom: 2px; }
-        .nav-item.active { color: white; transform: translateY(-5px); }
+        .nav-item.active { color: white; transform: translateY(-8px); }
         .nav-item.active i { color: var(--km7-gold); }
 
-        /* CARDS Y UI GENERAL */
-        .view-section { display: none; padding: 15px; animation: fadeIn 0.4s ease; }
+        /* GENERAL */
+        .view-section { display: none; padding: 15px; animation: slideUp 0.4s ease-out; }
         .active-section { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
-        .card-custom { background: var(--km7-card); border-radius: 22px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(44, 27, 14, 0.03); box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .card-custom { background: var(--km7-card); border-radius: 22px; padding: 20px; margin-bottom: 15px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
         .card-saldo { border-radius: 22px; padding: 22px; color: white; border: none; }
         .bg-caja { background: linear-gradient(135deg, #2C1B0E, #4e342e); }
         .bg-pendiente { background: linear-gradient(135deg, #BC955C, #8a7100); }
         
-        .btn-km7 { background: var(--km7-coffee); color: white; border-radius: 14px; font-weight: 600; padding: 14px; border: none; width: 100%; transition: 0.2s; }
-        .btn-km7:active { transform: scale(0.98); opacity: 0.9; }
-        
+        .btn-km7 { background: var(--km7-coffee); color: white; border-radius: 14px; font-weight: 700; padding: 14px; border: none; width: 100%; }
         .form-label-small { font-size: 10px; font-weight: 800; color: var(--km7-gold); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
-        .mov-item { background: white; border-radius: 18px; padding: 15px; margin-bottom: 12px; border-left: 6px solid var(--km7-coffee); transition: 0.2s; }
-        .mov-egreso { border-left-color: #dc3545; }
-        .mov-info { font-size: 0.9rem; color: var(--km7-coffee); font-weight: 700; }
-        .mov-nota { color: #999; font-weight: 400; font-size: 0.8rem; }
-        .mov-sub { font-size: 0.7rem; color: #aaa; text-transform: uppercase; font-weight: 700; }
         
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--km7-bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
         .hidden { display: none; }
@@ -79,60 +98,57 @@
 <body>
 
 <header class="app-header">
-    <div class="header-ver">v18.1</div>
+    <div class="header-ver">v18.2</div>
     <div class="header-logo">KM7 <span style="font-weight:300; color:var(--km7-gold)">CAFÉ</span></div>
     <div class="header-user">NR</div>
 </header>
 
-<div id="loader"><div class="spinner-border text-dark mb-3" style="color:var(--km7-coffee) !important"></div><h6 class="fw-bold">KM7 COFEE ROASTERS...</h6></div>
+<div id="loader"><div class="spinner-border text-dark mb-3" style="color:var(--km7-coffee) !important"></div><h6 class="fw-bold">CONFIGURANDO CRM...</h6></div>
 
-<div class="container mt-2">
+<button id="fab-prospecto" class="fab hidden" onclick="modProspecto.show()"><i class="bi bi-plus-lg"></i></button>
+
+<div class="container">
     <div id="sec-venta" class="view-section active-section">
-        <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="fw-bold m-0">Nueva Orden</h5><button class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="modCliente.show()">+ Cliente</button></div>
+        <h5 class="fw-bold mb-3">Nueva Orden</h5>
         <div class="card-custom">
             <label class="form-label-small">Cliente</label><select id="clienteSel" class="form-select border-0 bg-light mb-3 rounded-3"></select>
             <label class="form-label-small">Producto</label><div class="d-flex gap-2 mb-3"><select id="prodSel" class="form-select border-0 bg-light rounded-3"></select><input type="number" id="cant" class="form-control w-25 border-0 bg-light rounded-3 text-center" value="1"><button class="btn btn-dark rounded-3" onclick="addItem()"><i class="bi bi-plus-lg"></i></button></div>
             <div class="row"><div class="col-6"><label class="form-label-small">Entrega</label><select id="estadoEntrega" class="form-select border-0 bg-light rounded-3"><option>Pendiente</option><option>Entregado</option></select></div><div class="col-6"><label class="form-label-small">Pago</label><select id="estadoPago" class="form-select border-0 bg-light rounded-3" onchange="toggleMedioPago()"><option>Pendiente</option><option>Pagado</option></select></div></div>
-            <div id="divMedioPago" class="mt-3 hidden"><label class="form-label-small">Medio de Pago</label><select id="medioPago" class="form-select border-0 bg-light rounded-3"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
+            <div id="divMedioPago" class="mt-3 hidden"><label class="form-label-small">Medio</label><select id="medioPago" class="form-select border-0 bg-light rounded-3"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
             <div class="mt-3"><label class="form-label-small">Descuento ($)</label><input type="number" id="descuentoVenta" class="form-control border-0 bg-light rounded-3" placeholder="0" oninput="renderCar()"></div>
-            <input type="text" id="notaVenta" class="form-control border-0 bg-light mt-3 rounded-3" placeholder="Nota de pedido...">
+            <input type="text" id="notaVenta" class="form-control border-0 bg-light mt-3 rounded-3" placeholder="Notas...">
         </div>
         <div id="listaItems"></div>
-        <div class="card-custom bg-dark text-white d-flex justify-content-between align-items-center mt-3 shadow-lg" style="background:var(--km7-coffee) !important"><div><small class="opacity-75">TOTAL A PAGAR</small><h3 class="m-0 fw-bold">$<span id="totalVenta">0</span></h3></div><button class="btn btn-km7 px-4 py-2" style="width:auto; background:var(--km7-gold)" onclick="enviarVenta()">LISTO</button></div>
+        <div class="card-custom bg-dark text-white d-flex justify-content-between align-items-center mt-3 shadow-lg" style="background:var(--km7-coffee) !important"><div><small class="opacity-75">TOTAL</small><h3 class="m-0 fw-bold">$<span id="totalVenta">0</span></h3></div><button class="btn btn-km7 px-4 py-2" style="width:auto; background:var(--km7-gold)" onclick="enviarVenta()">LISTO</button></div>
     </div>
 
-    <div id="sec-historial" class="view-section"><h5 class="fw-bold mb-4">Registro de Ventas</h5><div id="contenedorHistorial"></div></div>
+    <div id="sec-historial" class="view-section"><h5 class="fw-bold mb-4">Registro Histórico</h5><div id="contenedorHistorial"></div></div>
 
-    <div id="sec-crm" class="view-section"><div class="d-flex justify-content-between align-items-center mb-4"><h5 class="fw-bold m-0">Clientes & Prospectos</h5><button class="btn btn-dark btn-sm rounded-pill" onclick="modProspecto.show()">+ Nuevo</button></div><div id="listaP"></div></div>
+    <div id="sec-crm" class="view-section">
+        <h5 class="fw-bold mb-4">Pipeline de Clientes</h5>
+        <div id="listaP"></div>
+    </div>
 
     <div id="sec-caja" class="view-section">
         <div class="row g-2 mb-3">
-            <div class="col-6"><div class="card-saldo bg-caja shadow-sm"><small class="opacity-75">DISPONIBLE</small><h4 id="cajaSaldo" class="fw-bold m-0">$0</h4></div></div>
-            <div class="col-6"><div class="card-saldo bg-pendiente shadow-sm" onclick="toggleDeudas()"><small class="opacity-75">POR COBRAR</small><h4 id="cajaPendiente" class="fw-bold m-0">$0</h4></div></div>
+            <div class="col-6"><div class="card-saldo bg-caja shadow-sm"><small class="opacity-75">CAJA REAL</small><h4 id="cajaSaldo" class="fw-bold m-0">$0</h4></div></div>
+            <div class="col-6"><div class="card-saldo bg-pendiente shadow-sm" onclick="toggleDeudas()"><small class="opacity-75">DEUDA CLIENTES</small><h4 id="cajaPendiente" class="fw-bold m-0">$0</h4></div></div>
         </div>
         <button class="btn btn-outline-danger w-100 mb-4 rounded-3 fw-bold py-2 border-2" onclick="modGasto.show()"><i class="bi bi-dash-circle me-2"></i> REGISTRAR GASTO</button>
-        <div id="listaDeudas" class="mb-4 hidden"><h6 class="form-label-small">Facturas Pendientes</h6><div id="contenedorDeudas"></div></div>
-        <h6 class="form-label-small">Movimientos del día</h6>
+        <div id="listaDeudas" class="mb-4 hidden"><h6 class="form-label-small">Cobros Pendientes</h6><div id="contenedorDeudas"></div></div>
+        <h6 class="form-label-small">Movimientos Recientes</h6>
         <div id="listaMovs"></div>
     </div>
 </div>
 
 <nav class="nav-bottom">
     <button class="nav-item active" onclick="ver('sec-venta', this)"><i class="bi bi-cup-hot-fill"></i>Venta</button>
-    <button class="nav-item" onclick="ver('sec-historial', this); loadHist();"><i class="bi bi-clock-history"></i>Ventas</button>
-    <button class="nav-item" onclick="ver('sec-crm', this); loadCRM();"><i class="bi bi-people"></i>CRM</button>
+    <button class="nav-item" onclick="ver('sec-historial', this); loadHist();"><i class="bi bi-receipt-cutoff"></i>Ventas</button>
+    <button class="nav-item" onclick="ver('sec-crm', this); loadCRM();"><i class="bi bi-person-lines-fill"></i>CRM</button>
     <button class="nav-item" onclick="ver('sec-caja', this); loadCaja();"><i class="bi bi-wallet2"></i>Caja</button>
 </nav>
 
-<div class="modal fade" id="modGasto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
-    <h5 class="fw-bold mb-3">Registrar Salida</h5>
-    <label class="form-label-small">Categoría</label><select id="gastoCat" class="form-select mb-3 bg-light border-0"><option>☕ Insumos (Café, Bolsas)</option><option>🚚 Logística y Envío</option><option>🏠 Alquiler y Servicios</option><option>🛠️ Mantenimiento Tostadora</option><option>📢 Marketing y Publicidad</option><option>👤 Retiro Nico (Caja Chica)</option><option>❓ Otros Gastos</option></select>
-    <label class="form-label-small">Monto ($)</label><input type="number" id="gastoMonto" class="form-control mb-3 bg-light border-0" placeholder="0.00">
-    <label class="form-label-small">Medio</label><select id="gastoMedio" class="form-select mb-3 bg-light border-0"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select>
-    <label class="form-label-small">Nota</label><input type="text" id="gastoNota" class="form-control mb-4 bg-light border-0" placeholder="Ej: Pago de gas...">
-    <button class="btn btn-danger w-100 py-3 fw-bold rounded-3" onclick="guardarGasto()">REGISTRAR SALIDA</button>
-</div></div></div>
-
+<div class="modal fade" id="modGasto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3">Registrar Salida</h5><label class="form-label-small">Categoría</label><select id="gastoCat" class="form-select mb-3 bg-light border-0"><option>☕ Insumos (Café, Bolsas)</option><option>🚚 Logística y Envío</option><option>🏠 Alquiler y Servicios</option><option>🛠️ Mantenimiento Tostadora</option><option>📢 Marketing y Publicidad</option><option>👤 Retiro Nico (Caja Chica)</option><option>❓ Otros Gastos</option></select><label class="form-label-small">Monto ($)</label><input type="number" id="gastoMonto" class="form-control mb-3 bg-light border-0" placeholder="0.00"><label class="form-label-small">Medio</label><select id="gastoMedio" class="form-select mb-3 bg-light border-0"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select><label class="form-label-small">Nota</label><input type="text" id="gastoNota" class="form-control mb-4 bg-light border-0" placeholder="Ej: Pago de gas..."><button class="btn btn-danger w-100 py-3 fw-bold rounded-3" onclick="guardarGasto()">REGISTRAR SALIDA</button></div></div></div>
 <div class="modal fade" id="modLogCRM" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><div class="d-flex justify-content-between align-items-start mb-1"><h5 id="logNombre" class="fw-bold m-0"></h5><select id="logTemp" class="form-select form-select-sm border-0 bg-light w-auto" onchange="cambiarTermometro()"><option value="frio">❄️ Frío</option><option value="tibio">⛅ Tibio</option><option value="caliente">🔥 Caliente</option></select></div><p id="logContacto" class="text-muted small mb-3"></p><hr><label class="form-label-small">Nueva Gestión</label><textarea id="logGestion" class="form-control bg-light border-0 mb-2" rows="2" placeholder="Escribe aquí..."></textarea><label class="form-label-small">Próximo Contacto</label><input type="date" id="logProxima" class="form-control bg-light border-0 mb-3"><button class="btn btn-km7 mb-4" onclick="guardarLog()">Guardar Gestión</button><div id="logHistorial" style="max-height: 200px; overflow-y: auto;"></div></div></div></div>
 <div class="modal fade" id="modMov" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4"><input type="hidden" id="editMovId"><h5 class="fw-bold mb-3">Editar Movimiento</h5><input type="text" id="editMovDesc" class="form-control mb-2 bg-light border-0"><input type="number" id="editMovMonto" class="form-control mb-2 bg-light border-0"><select id="editMovMedio" class="form-select mb-3 bg-light border-0"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select><div class="d-flex gap-2"><button class="btn btn-danger rounded-3" onclick="confirmarBorrarMov()">Borrar</button><button class="btn btn-km7 flex-grow-1" onclick="guardarEdicionMov()">Guardar</button></div></div></div></div>
 <div class="modal fade" id="modCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3">Nuevo Cliente</h5><input type="text" id="ncNombre" class="form-control mb-2 bg-light border-0" placeholder="Nombre"><select id="ncCat" class="form-select mb-2 bg-light border-0"><option>Minorista</option><option>Mayorista</option></select><input type="tel" id="ncTel" class="form-control mb-3 bg-light border-0" placeholder="Teléfono"><button class="btn btn-km7" onclick="crearClie()">Guardar</button></div></div></div>
@@ -168,20 +184,32 @@
         document.getElementById('loader').style.display = 'none';
     };
 
-    // Funciones CRM
+    // Funciones CRM REDISEÑADAS
     async function loadCRM() {
         const d = await callAPI('getFormData');
         prospectos = d.prospectos;
-        document.getElementById('listaP').innerHTML = prospectos.map(p => `<div class="card-custom border-start border-4 ${p[7]=='caliente'?'border-danger': p[7]=='tibio'?'border-warning':'border-info'}" onclick="abrirProspecto('${p[0]}','${p[1]}','${p[2]}','${p[7]}')"><div class="d-flex justify-content-between"><b>${p[1]}</b> <small class="badge bg-light text-dark">${p[7].toUpperCase()}</small></div><div class="text-muted small">${p[2]} | ${p[3]}</div></div>`).join('');
+        document.getElementById('listaP').innerHTML = prospectos.map(p => {
+            const tempClass = p[7] === 'caliente' ? 'bg-caliente' : (p[7] === 'tibio' ? 'bg-tibio' : 'bg-frio');
+            const tempIcon = p[7] === 'caliente' ? '🔥' : (p[7] === 'tibio' ? '⛅' : '❄️');
+            return `
+            <div class="crm-card" onclick="abrirProspecto('${p[0]}','${p[1]}','${p[2]}','${p[7]}')">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="fw-bold" style="font-size: 1.1rem; letter-spacing: -0.3px;">${p[1]}</div>
+                    <span class="temp-pill ${tempClass}">${tempIcon} ${p[7]}</span>
+                </div>
+                <div class="crm-info-row"><i class="bi bi-person"></i> ${p[2]}</div>
+                <div class="crm-info-row"><i class="bi bi-telephone"></i> ${p[3]}</div>
+            </div>`;
+        }).join('');
     }
     async function abrirProspecto(id, nombre, contacto, temp) {
         currentProspectoId = id; document.getElementById('logNombre').innerText = nombre; document.getElementById('logContacto').innerText = contacto; document.getElementById('logTemp').value = temp; document.getElementById('logGestion').value = ""; document.getElementById('logHistorial').innerHTML = "Cargando..."; modLogCRM.show();
         const logs = await callAPI('getSeguimientos', null, id);
-        document.getElementById('logHistorial').innerHTML = logs.map(l => `<div class="log-item"><div class="fw-bold mb-1" style="font-size:0.7rem;">${l[2]}</div><div>${l[4]}</div>${l[5] ? `<div class="text-primary mt-1" style="font-size:0.7rem;">Próxima: ${l[5]}</div>` : ''}</div>`).join('') || '<p class="text-muted small">Sin gestiones.</p>';
+        document.getElementById('logHistorial').innerHTML = logs.map(l => `<div class="log-item" style="border-left: 3px solid var(--km7-gold); padding-left:12px; margin-bottom:15px;"><div class="fw-bold mb-1" style="font-size:0.75rem; color:#888;">${l[2]}</div><div style="font-size:0.9rem;">${l[4]}</div>${l[5] ? `<div class="text-primary mt-1 fw-bold" style="font-size:0.7rem;">PRÓXIMA: ${l[5]}</div>` : ''}</div>`).join('') || '<p class="text-muted small">Sin historial.</p>';
     }
     async function cambiarTermometro() { await callAPI('actualizarTermometro', null, currentProspectoId, document.getElementById('logTemp').value); loadCRM(); }
     async function guardarLog() {
-        const g = document.getElementById('logGestion').value; if(!g) return alert("Escribí la gestión");
+        const g = document.getElementById('logGestion').value; if(!g) return alert("Detalle requerido");
         await callAPI('agregarLogCRM', { idProspecto: currentProspectoId, gestion: g, proxima: document.getElementById('logProxima').value });
         abrirProspecto(currentProspectoId, document.getElementById('logNombre').innerText, document.getElementById('logContacto').innerText, document.getElementById('logTemp').value);
     }
@@ -197,7 +225,7 @@
     }
     function renderCar() {
         let h = '', st = 0;
-        carrito.forEach((i, idx) => { st += i.subtotal; h += `<div class="card-custom py-2 d-flex justify-content-between align-items-center mb-2 shadow-sm"><span><b>${i.nombre}</b> <small class="text-muted">x${i.cant}</small></span><span><b>$${i.subtotal.toLocaleString()}</b> <i class="bi bi-x-circle text-danger ms-2" onclick="carrito.splice(${idx},1);renderCar()"></i></span></div>`; });
+        carrito.forEach((i, idx) => { st += i.subtotal; h += `<div class="card-custom py-2 d-flex justify-content-between align-items-center mb-2 shadow-sm"><span><b>${i.nombre}</b> <small class="text-muted">x${i.cant}</small></span><span><b>$${i.subtotal.toLocaleString()}</b> <i class="bi bi-trash3 text-danger ms-3" onclick="carrito.splice(${idx},1);renderCar()"></i></span></div>`; });
         const desc = parseFloat(document.getElementById('descuentoVenta').value) || 0;
         document.getElementById('listaItems').innerHTML = h; document.getElementById('totalVenta').innerText = Math.max(0, st - desc).toLocaleString();
     }
@@ -210,28 +238,28 @@
     // Funciones Historial y Caja
     async function loadHist() {
         const d = await callAPI('getHistorial');
-        document.getElementById('contenedorHistorial').innerHTML = d.map(v => `<div class="card-custom"><div class="d-flex justify-content-between mb-1"><b>${v.clienteNombre}</b> <small class="text-muted">${v.fecha.split('T')[0]}</small></div><div class="d-flex justify-content-between align-items-center"><div><span class="badge ${v.pago=='Pagado'?'bg-success':'bg-danger'}" style="font-size:0.6rem">${v.pago}</span> <span class="badge ${v.entrega=='Entregado'?'bg-info':'bg-warning text-dark'}" style="font-size:0.6rem; margin-left:4px;">${v.entrega}</span></div><b class="text-dark">$${v.total}</b></div></div>`).join('');
+        document.getElementById('contenedorHistorial').innerHTML = d.map(v => `<div class="card-custom mb-3"><div class="d-flex justify-content-between mb-1"><b>${v.clienteNombre}</b> <small class="text-muted">${v.fecha.split('T')[0]}</small></div><div class="d-flex justify-content-between align-items-center"><div><span class="badge ${v.pago=='Pagado'?'bg-success':'bg-danger'}" style="font-size:0.6rem; border-radius:6px;">${v.pago}</span> <span class="badge ${v.entrega=='Entregado'?'bg-info':'bg-warning text-dark'}" style="font-size:0.6rem; margin-left:4px; border-radius:6px;">${v.entrega}</span></div><b class="text-dark">$${v.total}</b></div></div>`).join('');
     }
     async function loadCaja() {
         const d = await callAPI('getCaja');
         document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
         document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
         document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `
-            <div class="mov-item shadow-sm d-flex justify-content-between align-items-center ${m.tipo=='Egreso'?'mov-egreso':''}" onclick="abrirEdicionMov('${m.id}','${m.descripcionOriginal}','${m.monto}','${m.medio}')">
+            <div class="card-custom py-3 d-flex justify-content-between align-items-center border-start border-4 ${m.tipo=='Egreso'?'border-danger':'border-success'}" onclick="abrirEdicionMov('${m.id}','${m.descripcionOriginal}','${m.monto}','${m.medio}')">
                 <div>
-                    <div class="mov-sub">${m.fecha.split(' ')[0]} • ${m.tipo}</div>
-                    <div class="mov-info">${m.clienteReal}${m.notaReal ? '<br><span class="mov-nota">• '+m.notaReal+'</span>' : ''}</div>
-                    <span class="badge-medio">${m.medio || 'Efectivo'}</span>
+                    <div class="form-label-small m-0" style="font-size:9px;">${m.fecha.split(' ')[0]}</div>
+                    <div class="fw-bold" style="font-size:0.95rem;">${m.clienteReal}</div>
+                    ${m.notaReal ? '<div class="text-muted small">• '+m.notaReal+'</div>' : ''}
                 </div>
-                <div class="text-end"><h6 class="m-0 fw-bold ${m.tipo=='Ingreso'?'text-success':'text-danger'}">${m.tipo=='Ingreso'?'+':'-'}$${m.monto}</h6></div>
+                <div class="text-end"><h6 class="m-0 fw-bold ${m.tipo=='Ingreso'?'text-success':'text-danger'}">${m.tipo=='Ingreso'?'+':'-'}$${m.monto}</h6><small class="text-muted" style="font-size:10px">${m.medio || 'Efectivo'}</small></div>
             </div>`).join('');
         document.getElementById('contenedorDeudas').innerHTML = d.detallesPendientes.map(p => `
-            <div class="card-custom py-2 mb-2 border-start border-3 border-warning shadow-sm">
+            <div class="card-custom py-2 mb-2 border-start border-3 border-warning">
                 <div class="d-flex justify-content-between align-items-center">
                     <div><div class="fw-bold" style="font-size:0.85rem">${p.cliente}</div><div class="text-muted" style="font-size:0.7rem">${p.fecha.split('T')[0]} ${p.nota ? '• '+p.nota : ''}</div></div>
                     <div class="text-end"><b class="text-dark">$${p.monto}</b></div>
                 </div>
-            </div>`).join('') || '<p class="text-center text-muted py-3">No hay cobros pendientes</p>';
+            </div>`).join('') || '<p class="text-center text-muted py-3">No hay deudas.</p>';
     }
 
     async function guardarGasto() {
@@ -248,6 +276,8 @@
         document.getElementById(id).classList.add('active-section'); 
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); 
         el.classList.add('active'); 
+        // Mostrar FAB solo en CRM
+        document.getElementById('fab-prospecto').classList.toggle('hidden', id !== 'sec-crm');
     }
     function toggleDeudas() { document.getElementById('listaDeudas').classList.toggle('hidden'); }
     function abrirEdicionMov(id, desc, monto, medio) { document.getElementById('editMovId').value = id; document.getElementById('editMovDesc').value = desc; document.getElementById('editMovMonto').value = monto.replace(/[$.]/g, '').replace(',', '.'); document.getElementById('editMovMedio').value = medio || 'Efectivo'; modMov.show(); }
