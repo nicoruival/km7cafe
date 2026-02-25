@@ -1,302 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Km7 Cafe - Vercel Edition</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f4f6f9; padding-bottom: 80px; font-family: sans-serif; }
-        .nav-bottom { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; padding: 10px 0; z-index: 9999; }
-        .nav-item { text-align: center; color: #888; background: none; border: none; font-size: 0.7rem; flex: 1; }
-        .nav-item.active { color: #0d6efd; font-weight: bold; }
-        .nav-item i { font-size: 1.5rem; display: block; }
-        .view-section { display: none; }
+        :root { --km7: #4e342e; }
+        body { background: #f4f4f4; padding-bottom: 70px; }
+        .nav-bottom { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; }
+        .nav-item { flex: 1; text-align: center; padding: 10px; color: #888; text-decoration: none; font-size: 0.8rem; }
+        .nav-item.active { color: var(--km7); font-weight: bold; }
+        .view-section { display: none; padding: 20px; }
         .active-section { display: block; }
-        .card-custom { border-radius: 12px; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; background: white; padding: 12px; position: relative; }
-        
-        /* Ajuste de botones rápidos para que no tapen información */
-        .btn-quick-vta { position: absolute; bottom: 12px; right: 12px; padding: 5px 10px; border-radius: 8px; }
-        .btn-quick-crm { position: absolute; top: 50%; right: 12px; transform: translateY(-50%); padding: 5px 10px; border-radius: 8px; }
-        
-        .badge-status { font-size: 0.65rem; padding: 3px 8px; border-radius: 10px; margin-right: 5px; }
-        .saldo-card { background: linear-gradient(45deg, #1d976c, #93f9b9); color: white; border-radius: 15px; padding: 15px; text-align: center; }
-        .pendiente-card { background: linear-gradient(45deg, #f09819, #edde5d); color: white; border-radius: 15px; padding: 15px; text-align: center; }
-        .tipo-ingreso { color: #198754; font-weight: bold; }
-        .tipo-egreso { color: #dc3545; font-weight: bold; }
+        .card-custom { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
-<div class="container mt-3">
+<div id="app">
     <div id="sec-venta" class="view-section active-section">
-        <h4 class="fw-bold mb-3">Km7 cafe - Nueva Venta</h4>
+        <h4 class="fw-bold mb-3">☕ Nueva Venta (Vercel)</h4>
         <div class="card-custom">
-            <label class="small fw-bold">CLIENTE</label><select id="clienteSel" class="form-select mb-2"></select>
-            <label class="small fw-bold">NOTA / NOMBRE</label><input type="text" id="notaVenta" class="form-control mb-3" placeholder="Ej: Juan Pérez">
-            <div class="d-flex gap-2"><select id="prodSel" class="form-select"></select><input type="number" id="cant" class="form-control w-25" value="1"><button class="btn btn-primary" onclick="addItem()">+</button></div>
+            <select id="clienteSel" class="form-select mb-2"></select>
+            <div class="d-flex gap-2">
+                <select id="prodSel" class="form-select"></select>
+                <input type="number" id="cant" class="form-control w-25" value="1">
+                <button class="btn btn-dark" onclick="addItem()">+</button>
+            </div>
         </div>
         <div id="listaItems"></div>
-        <div class="card-custom bg-dark text-white d-flex justify-content-between align-items-center"><span>Total: $<span id="totalVenta">0</span></span><button class="btn btn-primary btn-sm" onclick="saveVenta()">REGISTRAR</button></div>
+        <div class="card-custom bg-dark text-white d-flex justify-content-between align-items-center mt-3">
+            <h4 class="m-0">$<span id="totalVenta">0</span></h4>
+            <button class="btn btn-primary" onclick="enviarVenta()">REGISTRAR</button>
+        </div>
     </div>
 
     <div id="sec-historial" class="view-section">
-        <h4 class="fw-bold mb-3">Ventas Realizadas</h4>
-        <div id="contenedorHistorial"></div>
-    </div>
-
-    <div id="sec-crm" class="view-section">
-        <div class="d-flex justify-content-between align-items-center mb-3"><h4 class="fw-bold mb-0">Ruta CRM</h4><button class="btn btn-sm btn-primary rounded-pill px-3" onclick="modNewProspecto.show()">+ Nuevo</button></div>
-        <div id="listaP"></div>
-    </div>
-
-    <div id="sec-caja" class="view-section">
-        <h4 class="fw-bold mb-3">Estado de Caja</h4>
-        <div class="row g-2 mb-3">
-            <div class="col-6"><div class="saldo-card"><small>SALDO</small><h4 id="cajaSaldo">$0</h4></div></div>
-            <div class="col-6"><div class="pendiente-card"><small>PENDIENTE</small><h4 id="cajaPendiente">$0</h4></div></div>
-        </div>
-        <button class="btn btn-danger w-100 mb-3 rounded-pill" onclick="modGasto.show()"><i class="bi bi-dash-circle"></i> Registrar Gasto</button>
-        <h6 class="fw-bold small">HISTORIAL (Toca para editar / <i class="bi bi-trash"></i> para borrar)</h6>
-        <div id="listaMovimientos"></div>
+        <h4 class="fw-bold">Ventas</h4>
+        <div id="histContent"></div>
     </div>
 </div>
 
 <nav class="nav-bottom">
-    <button class="nav-item active" onclick="verSeccion('sec-venta', this)"><i class="bi bi-cart"></i>Vender</button>
-    <button class="nav-item" onclick="verSeccion('sec-historial', this); loadHist();"><i class="bi bi-clock"></i>Ventas</button>
-    <button class="nav-item" onclick="verSeccion('sec-crm', this); loadCRM();"><i class="bi bi-people"></i>CRM</button>
-    <button class="nav-item" onclick="verSeccion('sec-caja', this); loadCaja();"><i class="bi bi-cash-stack"></i>Caja</button>
+    <a href="#" class="nav-item active" onclick="show('sec-venta')">Venta</a>
+    <a href="#" class="nav-item" onclick="show('sec-historial'); loadHist()">Historial</a>
 </nav>
 
-<div class="modal fade" id="modalEditMov" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><b>Ajustar Movimiento</b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="eMovId"><label class="small fw-bold">CONCEPTO</label><input type="text" id="eMovCon" class="form-control mb-2"><label class="small fw-bold">MONTO FINAL</label><input type="number" id="eMovMon" class="form-control mb-3"><button class="btn btn-primary w-100" onclick="updateMovCaja()">Guardar</button></div></div></div></div>
-<div class="modal fade" id="modalGasto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><b>Nuevo Gasto</b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="gastoConcepto" class="form-control mb-2" placeholder="Concepto"><input type="number" id="gastoMonto" class="form-control mb-3" placeholder="Monto"><button class="btn btn-danger w-100" onclick="saveGasto()">Confirmar</button></div></div></div></div>
-<div class="modal fade" id="modalNewProspecto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><b>Nuevo Prospecto</b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="nNeg" class="form-control mb-2" placeholder="Negocio"><input type="text" id="nCon" class="form-control mb-2" placeholder="Contacto"><input type="text" id="nTel" class="form-control mb-2" placeholder="Tel"><input type="text" id="nDir" class="form-control mb-2" placeholder="Dirección"><select id="nTemp" class="form-select mb-3"><option value="frio">Frío</option><option value="tibio">Tibio</option><option value="caliente">Caliente</option></select><button class="btn btn-primary w-100" onclick="saveNewProspecto()">Crear</button></div></div></div></div>
-<div class="modal fade" id="modalFull" tabindex="-1"><div class="modal-dialog modal-fullscreen-sm-down"><div class="modal-content"><div class="modal-header"><b>Editor Venta</b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-light"><input type="hidden" id="fId"><label class="small fw-bold">CLIENTE</label><select id="fClie" class="form-select mb-2"></select><label class="small fw-bold">NOTA</label><input type="text" id="fNota" class="form-control mb-2"><div class="row g-2 mb-3"><div class="col-6"><label class="small fw-bold">PAGO</label><select id="fPago" class="form-select"><option>Pagado</option><option>Pendiente</option></select></div><div class="col-6"><label class="small fw-bold">ENTREGA</label><select id="fEntr" class="form-select"><option>Entregado</option><option>Pendiente</option></select></div></div><hr><div id="fItems" class="bg-white rounded p-2 mb-3"></div><div class="d-flex gap-1"><select id="fNewProd" class="form-select form-select-sm"></select><input type="number" id="fNewCant" class="form-control form-control-sm w-25" value="1"><button class="btn btn-success btn-sm" onclick="addNewItemToVenta()">+</button></div><button class="btn btn-danger btn-sm w-100 mt-3" onclick="confirmarEliminarVenta()">ELIMINAR VENTA</button></div><div class="modal-footer"><button class="btn btn-primary w-100" onclick="updateFull()">GUARDAR</button></div></div></div></div>
-
-<div class="modal fade" id="modalQuickVta" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body">
-    <h6 class="fw-bold mb-3 border-bottom pb-2">Acción Rápida - Km7 cafe</h6>
-    <input type="hidden" id="qVtaId">
-    <button class="btn btn-success w-100 mb-4" onclick="copyVtaToWS()"><i class="bi bi-whatsapp"></i> Copiar para WhatsApp</button>
-    <div class="mb-2"><label class="small fw-bold text-muted">ESTADO DE PAGO</label><select id="qVtaPago" class="form-select"><option>Pagado</option><option>Pendiente</option></select></div>
-    <div class="mb-3"><label class="small fw-bold text-muted">ESTADO DE ENTREGA</label><select id="qVtaEntr" class="form-select"><option>Entregado</option><option>Pendiente</option></select></div>
-    <button class="btn btn-primary w-100" onclick="updateQuickVta()">Guardar Cambios</button>
-</div></div></div></div>
-
-<div class="modal fade" id="modalFichaCRM" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><b>Ficha CRM</b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="crmFId"><input type="text" id="crmFN" class="form-control mb-2" placeholder="Negocio"><input type="text" id="crmFC" class="form-control mb-2" placeholder="Contacto"><input type="text" id="crmFT" class="form-control mb-2" placeholder="Tel"><input type="text" id="crmFD" class="form-control mb-2" placeholder="Dirección"><select id="crmFTe" class="form-select mb-3"><option value="caliente">Caliente</option><option value="tibio">Tibio</option><option value="frio">Frío</option></select><button class="btn btn-primary w-100" onclick="updateFichaCRM()">Guardar</button></div></div></div></div>
-
-<div class="modal fade" id="modalQuickCRM" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><b id="qCrmTit"></b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
-    <input type="hidden" id="qCrmId">
-    <label class="small fw-bold">ACCION</label>
-    <select id="qCrmAcc" class="form-select mb-2">
-        <option>Llamada</option><option>Visita</option><option>WhatsApp</option><option>Venta</option>
-    </select>
-    <textarea id="qCrmCom" class="form-control mb-2" placeholder="Anotación..."></textarea>
-    <button class="btn btn-success w-100 mb-3" onclick="saveQuickCRM()">Guardar Evento</button>
-    <hr>
-    <div id="qCrmHistorial" style="max-height: 200px; overflow-y: auto;"></div>
-</div></div></div></div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    let pData = [], cData = [], prData = [], hLocal = [], carrito = [];
-    let modF, modQV, modFicha, modQC, modNewProspecto, modGasto, modEditMov;
+    // ⚠️ REEMPLAZA ESTO CON TU URL DE IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT
+    const API_URL = "https://script.google.com/macros/s/TU_ID_AQUI/exec";
 
-    window.onload = () => {
-        modF = new bootstrap.Modal(document.getElementById('modalFull'));
-        modQV = new bootstrap.Modal(document.getElementById('modalQuickVta'));
-        modFicha = new bootstrap.Modal(document.getElementById('modalFichaCRM'));
-        modQC = new bootstrap.Modal(document.getElementById('modalQuickCRM'));
-        modNewProspecto = new bootstrap.Modal(document.getElementById('modalNewProspecto'));
-        modGasto = new bootstrap.Modal(document.getElementById('modalGasto'));
-        modEditMov = new bootstrap.Modal(document.getElementById('modalEditMov'));
-        google.script.run.withSuccessHandler(d => {
-            pData = d.productos; cData = d.clientes;
-            document.getElementById('prodSel').innerHTML = d.productos.map(p => `<option value="${p[0]}">${p[1]}</option>`).join('');
-            document.getElementById('fNewProd').innerHTML = d.productos.map(p => `<option value="${p[0]}">${p[1]}</option>`).join('');
-            let clieHtml = '<option value="CLI-001">Consumidor Final</option>' + d.clientes.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
-            document.getElementById('clienteSel').innerHTML = clieHtml;
-            document.getElementById('fClie').innerHTML = clieHtml;
-        }).getFormData();
+    let productos = [], clientes = [], carrito = [];
+
+    async function callAPI(action, data = null) {
+        let url = `${API_URL}?action=${action}`;
+        if (data) url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
+        const resp = await fetch(url);
+        return await resp.json();
+    }
+
+    window.onload = async () => {
+        const data = await callAPI('getFormData');
+        productos = data.productos;
+        clientes = data.clientes;
+        document.getElementById('clienteSel').innerHTML = clientes.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
+        document.getElementById('prodSel').innerHTML = productos.map(p => `<option value="${p[0]}">${p[1]}</option>`).join('');
     };
 
-    function verSeccion(id, el) {
-        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section'));
-        document.getElementById(id).classList.add('active-section');
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
-    }
-
-    // --- CAJA ---
-    function loadCaja() {
-        google.script.run.withSuccessHandler(d => {
-            document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
-            document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
-            document.getElementById('listaMovimientos').innerHTML = d.movimientos.map(m => `
-                <div class="card-custom py-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div onclick="openEditMov('${m[0]}','${m[3]}','${m[4]}')" style="flex:1">
-                            <small class="${m[2]=='Ingreso'?'tipo-ingreso':'tipo-egreso'}">${m[2]}</small><br>
-                            <b>${m[3]}</b><br>
-                            <small class="text-muted" style="font-size:0.6rem">${m[5] || ''}</small>
-                        </div>
-                        <div class="text-end">
-                            <b class="${m[2]=='Ingreso'?'text-success':'text-danger'} d-block">${m[2]=='Ingreso'?'+':'-'}$${m[4]}</b>
-                            <button class="btn btn-sm text-danger p-0 mt-1" onclick="borrarMovCaja('${m[0]}')"><i class="bi bi-trash"></i></button>
-                        </div>
-                    </div>
-                </div>`).join('');
-        }).getDatosCaja();
-    }
-
-    function openEditMov(id, con, mon) {
-        document.getElementById('eMovId').value = id; document.getElementById('eMovCon').value = con;
-        document.getElementById('eMovMon').value = parseFloat(mon.replace(',','.')); modEditMov.show();
-    }
-
-    function updateMovCaja() {
-        const d = { concepto: document.getElementById('eMovCon').value, monto: document.getElementById('eMovMon').value };
-        google.script.run.withSuccessHandler(m => { alert(m); modEditMov.hide(); loadCaja(); }).actualizarMovimientoCaja(document.getElementById('eMovId').value, d);
-    }
-
-    function saveGasto() {
-        const d = { concept: document.getElementById('gastoConcepto').value, monto: document.getElementById('gastoMonto').value };
-        google.script.run.withSuccessHandler(m => { alert(m); modGasto.hide(); loadCaja(); }).registrarGasto(d);
-    }
-
-    // --- CRM ---
-    function saveNewProspecto() {
-        const d = { nombre: document.getElementById('nNeg').value, contacto: document.getElementById('nCon').value, tel: document.getElementById('nTel').value, dir: document.getElementById('nDir').value, temp: document.getElementById('nTemp').value };
-        google.script.run.withSuccessHandler(m => { alert(m); modNewProspecto.hide(); loadCRM(); }).crearProspecto(d);
-    }
-
-    function loadCRM() {
-        google.script.run.withSuccessHandler(d => {
-            prData = d.prospectos;
-            document.getElementById('listaP').innerHTML = d.prospectos.filter(p => p[5]=='Activo').map(p => `
-                <div class="card-custom py-3" onclick="openFichaCRM('${p[0]}')">
-                    <b>${p[1]}</b><br><small class="text-muted">${p[2]}</small>
-                    <button class="btn btn-outline-success btn-quick-crm" onclick="event.stopPropagation(); openQuickCRM('${p[0]}','${p[1]}')"><i class="bi bi-lightning-fill"></i></button>
-                </div>`).join('');
-        }).getFormData();
-    }
-
-    function openFichaCRM(id) {
-        let p = prData.find(x => x[0]==id);
-        document.getElementById('crmFId').value = id; document.getElementById('crmFN').value = p[1];
-        document.getElementById('crmFC').value = p[2]; document.getElementById('crmFT').value = p[3];
-        document.getElementById('crmFD').value = p[4]; document.getElementById('crmFTe').value = p[7];
-        modFicha.show();
-    }
-
-    function openQuickCRM(id, nom) {
-        document.getElementById('qCrmId').value = id;
-        document.getElementById('qCrmTit').innerText = nom;
-        document.getElementById('qCrmCom').value = "";
-        modQC.show();
-        google.script.run.withSuccessHandler(h => {
-            document.getElementById('qCrmHistorial').innerHTML = h.map(e => `<div class="small border-bottom mb-1"><b>${e[3]}:</b> ${e[4]} <br><small class='text-muted'>${e[2]}</small></div>`).join('');
-        }).getHistorialCRM(id);
-    }
-
-    function saveQuickCRM() {
-        const id = document.getElementById('qCrmId').value;
-        google.script.run.withSuccessHandler(() => openQuickCRM(id, document.getElementById('qCrmTit').innerText))
-            .agregarEventoSeguimiento(id, document.getElementById('qCrmAcc').value, document.getElementById('qCrmCom').value);
-    }
-
-    function updateFichaCRM() {
-        const d = { nombre: document.getElementById('crmFN').value, contacto: document.getElementById('crmFC').value, tel: document.getElementById('crmFT').value, dir: document.getElementById('crmFD').value, temp: document.getElementById('crmFTe').value };
-        google.script.run.withSuccessHandler(() => { modFicha.hide(); loadCRM(); }).actualizarProspecto(document.getElementById('crmFId').value, d);
-    }
-
-    // --- VENTAS ---
     function addItem() {
-        let idProd = document.getElementById('prodSel').value, idClie = document.getElementById('clienteSel').value;
-        let producto = pData.find(x => x[0] == idProd), cliente = cData.find(x => x[0] == idClie);
-        let esMayorista = cliente && cliente.some(val => val.toString().toLowerCase().includes("mayorista"));
-        let precioAplicado = esMayorista ? producto[6] : producto[5];
-        precioAplicado = parseFloat(precioAplicado.toString().replace('$', '').replace(',', '.'));
-        carrito.push({idProd: idProd, nombre: producto[1], cant: document.getElementById('cant').value, precio: precioAplicado, subtotal: document.getElementById('cant').value * precioAplicado});
+        const p = productos.find(x => x[0] == document.getElementById('prodSel').value);
+        const c = clientes.find(x => x[0] == document.getElementById('clienteSel').value);
+        const precio = c[2] === "Mayorista" ? parseFloat(p[6]) : parseFloat(p[5]);
+        const cant = parseFloat(document.getElementById('cant').value);
+        carrito.push({ idProd: p[0], nombre: p[1], cant, precio, subtotal: cant * precio });
         renderCar();
     }
 
     function renderCar() {
-        let h = '', t = 0; carrito.forEach((i, index) => { 
-            t += i.subtotal; h += `<div class='card-custom p-2 small d-flex justify-content-between align-items-center'><span>${i.nombre} (x${i.cant}) - $${i.precio}</span><button class="btn btn-sm text-danger" onclick="carrito.splice(${index},1); renderCar();"><i class="bi bi-x-circle"></i></button></div>`; 
-        });
-        document.getElementById('listaItems').innerHTML = h; document.getElementById('totalVenta').innerText = t.toFixed(2);
+        let t = 0;
+        document.getElementById('listaItems').innerHTML = carrito.map(i => {
+            t += i.subtotal;
+            return `<div class="card-custom"><b>${i.nombre}</b> x${i.cant} - $${i.subtotal}</div>`;
+        }).join('');
+        document.getElementById('totalVenta').innerText = t.toLocaleString();
     }
 
-    function saveVenta() {
-        google.script.run.withSuccessHandler(m => { alert(m); carrito=[]; renderCar(); document.getElementById('notaVenta').value=""; })
-            .registrarVenta({ idCliente: document.getElementById('clienteSel').value, total: document.getElementById('totalVenta').innerText, estadoPago: 'Pendiente', estadoEntrega: 'Pendiente', nota: document.getElementById('notaVenta').value, items: carrito });
+    async function enviarVenta() {
+        const d = {
+            idCliente: document.getElementById('clienteSel').value,
+            total: document.getElementById('totalVenta').innerText,
+            estadoPago: 'Pendiente',
+            estadoEntrega: 'Pendiente',
+            items: carrito
+        };
+        const res = await callAPI('registrarVenta', d);
+        alert(res.message);
+        carrito = []; renderCar();
     }
 
-    function loadHist() { google.script.run.withSuccessHandler(d => { hLocal = d; renderHist(d); }).getHistorialCompleto(); }
-
-    function renderHist(d) {
-        document.getElementById('contenedorHistorial').innerHTML = d.map(v => `
-            <div class="card-custom" onclick="openFullVta('${v.id}','${v.idClie}','${v.nota}','${v.pago}','${v.entrega}')">
-                <b>${v.clienteNombre}</b> <span class="text-primary float-end">$${v.total}</span><br>
-                <small class="text-muted d-block mb-2" style="padding-right: 40px;">${v.nota || 'Sin nota'}</small>
-                <span class="badge-status ${v.pago=='Pagado'?'bg-success text-white':'bg-warning text-dark'}">${v.pago}</span>
-                <span class="badge-status ${v.entrega=='Entregado'?'bg-info text-white':'bg-secondary text-white'}">${v.entrega}</span>
-                <button class="btn btn-outline-primary btn-quick-vta" onclick="event.stopPropagation(); openQuickVta('${v.id}','${v.pago}','${v.entrega}')"><i class="bi bi-pencil"></i></button>
-            </div>`).join('');
+    async function loadHist() {
+        const h = await callAPI('getHistorial');
+        document.getElementById('histContent').innerHTML = h.map(v => `<div class="card-custom"><b>${v.cliente}</b> - $${v.total}</div>`).join('');
     }
 
-    function openQuickVta(id, p, e) { 
-        document.getElementById('qVtaId').value = id; 
-        document.getElementById('qVtaPago').value = p; 
-        document.getElementById('qVtaEntr').value = e; 
-        modQV.show(); 
+    function show(id) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section'));
+        document.getElementById(id).classList.add('active-section');
     }
-
-    function copyVtaToWS() {
-        const id = document.getElementById('qVtaId').value;
-        const v = hLocal.find(x => x.id == id);
-        google.script.run.withSuccessHandler(detalles => {
-            let itemsText = detalles.map(i => `- ${i.nombreProd} x${i.cant}`).join('\n');
-            let txt = `☕ *NUEVA VENTA - KM7 CAFE*\n👤 *Cliente:* ${v.clienteNombre}\n📝 *Nota:* ${v.nota || '---'}\n📦 *Productos:*\n${itemsText}\n💰 *TOTAL:* $${v.total}`;
-            navigator.clipboard.writeText(txt).then(() => alert("¡Datos copiados! Ya puedes pegarlos en WhatsApp."));
-        }).getDetalleVenta(id);
-    }
-
-    function updateQuickVta() {
-        let id = document.getElementById('qVtaId').value, v = hLocal.find(x => x.id == id);
-        google.script.run.withSuccessHandler(() => { modQV.hide(); loadHist(); }).actualizarVentaCompleta(id, { pago: document.getElementById('qVtaPago').value, entrega: document.getElementById('qVtaEntr').value, idCliente: v.idClie, nota: v.nota });
-    }
-
-    function openFullVta(id, clie, nota, pago, entrega) {
-        document.getElementById('fId').value = id; document.getElementById('fClie').value = clie; document.getElementById('fNota').value = nota; 
-        document.getElementById('fPago').value = pago; document.getElementById('fEntr').value = entrega; refreshItemsFull(id); modF.show();
-    }
-
-    function refreshItemsFull(id) {
-        google.script.run.withSuccessHandler(its => {
-            document.getElementById('fItems').innerHTML = its.map(i => `<div class="d-flex justify-content-between p-1 border-bottom small"><span>${i.nombreProd} (x${i.cant})</span><button class="btn btn-link btn-sm text-danger" onclick="delItemFull('${i.idDetalle}')"><i class="bi bi-trash"></i></button></div>`).join('');
-        }).getDetalleVenta(id);
-    }
-
-    function delItemFull(idDet) { if(confirm("¿Borrar?")) google.script.run.withSuccessHandler(()=>refreshItemsFull(document.getElementById('fId').value)).eliminarItemDeVenta(idDet); }
-
-    function addNewItemToVenta() {
-        let idV = document.getElementById('fId').value, idPr = document.getElementById('fNewProd').value, idClie = document.getElementById('fClie').value;
-        let producto = pData.find(x => x[0] == idPr), cliente = cData.find(x => x[0] == idClie);
-        let esMayorista = cliente && cliente.some(val => val.toString().toLowerCase().includes("mayorista"));
-        let precioAplicado = esMayorista ? producto[6] : producto[5];
-        precioAplicado = parseFloat(precioAplicado.toString().replace('$', '').replace(',', '.'));
-        google.script.run.withSuccessHandler(() => refreshItemsFull(idV)).agregarItemAVenta(idV, {idProd: idPr, cant: document.getElementById('fNewCant').value, precio: precioAplicado, subtotal: document.getElementById('fNewCant').value * precioAplicado});
-    }
-
-    function updateFull() {
-        const d = { idCliente: document.getElementById('fClie').value, nota: document.getElementById('fNota').value, pago: document.getElementById('fPago').value, entrega: document.getElementById('fEntr').value };
-        google.script.run.withSuccessHandler(() => { modF.hide(); loadHist(); }).actualizarVentaCompleta(document.getElementById('fId').value, d);
-    }
-
-    function confirmarEliminarVenta() { if(confirm("¿ELIMINAR TODO?")) google.script.run.withSuccessHandler(()=>{modF.hide(); loadHist();}).eliminarVenta(document.getElementById('fId').value); }
 </script>
 </body>
 </html>
-
