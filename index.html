@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Fleet v17.3</title>
+    <title>Km7 Fleet v17.4</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -24,6 +24,7 @@
         .form-label-small { font-size: 0.7rem; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 5px; display: block; }
         .mov-item { background: white; border-radius: 15px; padding: 12px 15px; margin-bottom: 10px; border-left: 5px solid #4e342e; }
         .mov-info { font-size: 0.85rem; color: #333; font-weight: 600; }
+        .mov-nota { color: #888; font-weight: 400; font-size: 0.75rem; }
         .mov-sub { font-size: 0.7rem; color: #888; text-transform: uppercase; }
         .badge-medio { font-size: 0.6rem; background: #eee; padding: 2px 6px; border-radius: 5px; color: #666; }
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
@@ -81,7 +82,7 @@
     </div>
 
     <div id="sec-historial" class="view-section">
-        <h4 class="fw-bold mb-4">📜 Historial Ventas</h4>
+        <h4 class="fw-bold mb-4">📜 Historial</h4>
         <div id="contenedorHistorial"></div>
     </div>
 
@@ -112,22 +113,12 @@
 </nav>
 
 <div class="modal fade" id="modLogCRM" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
-    <div class="d-flex justify-content-between align-items-start mb-1">
-        <h5 id="logNombre" class="fw-bold m-0"></h5>
-        <select id="logTemp" class="form-select form-select-sm border-0 bg-light w-auto" onchange="cambiarTermometro()">
-            <option value="frio">❄️ Frío</option>
-            <option value="tibio">⛅ Tibio</option>
-            <option value="caliente">🔥 Caliente</option>
-        </select>
-    </div>
-    <p id="logContacto" class="text-muted small mb-3"></p>
-    <hr>
-    <label class="form-label-small">Nueva Gestión</label>
-    <textarea id="logGestion" class="form-control bg-light border-0 mb-2" rows="2" placeholder="Escribe aquí..."></textarea>
-    <label class="form-label-small">Próximo Contacto</label>
-    <input type="date" id="logProxima" class="form-control bg-light border-0 mb-3">
-    <button class="btn btn-km7 mb-4" onclick="guardarLog()">Guardar Gestión</button>
-    <div id="logHistorial" style="max-height: 200px; overflow-y: auto;"></div>
+    <div class="d-flex justify-content-between align-items-start mb-1"><h5 id="logNombre" class="fw-bold m-0"></h5>
+    <select id="logTemp" class="form-select form-select-sm border-0 bg-light w-auto" onchange="cambiarTermometro()"><option value="frio">❄️ Frío</option><option value="tibio">⛅ Tibio</option><option value="caliente">🔥 Caliente</option></select></div>
+    <p id="logContacto" class="text-muted small mb-3"></p><hr>
+    <label class="form-label-small">Nueva Gestión</label><textarea id="logGestion" class="form-control bg-light border-0 mb-2" rows="2" placeholder="Escribe aquí..."></textarea>
+    <label class="form-label-small">Próximo Contacto</label><input type="date" id="logProxima" class="form-control bg-light border-0 mb-3">
+    <button class="btn btn-km7 mb-4" onclick="guardarLog()">Guardar Gestión</button><div id="logHistorial" style="max-height: 200px; overflow-y: auto;"></div>
 </div></div></div>
 
 <div class="modal fade" id="modMov" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4">
@@ -138,16 +129,13 @@
 </div></div></div>
 
 <div class="modal fade" id="modCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
-    <h5 class="fw-bold mb-3">Nuevo Cliente</h5>
-    <input type="text" id="ncNombre" class="form-control mb-2 bg-light border-0" placeholder="Nombre">
+    <h5 class="fw-bold mb-3">Nuevo Cliente</h5><input type="text" id="ncNombre" class="form-control mb-2 bg-light border-0" placeholder="Nombre">
     <select id="ncCat" class="form-select mb-2 bg-light border-0"><option>Minorista</option><option>Mayorista</option></select>
-    <input type="tel" id="ncTel" class="form-control mb-3 bg-light border-0" placeholder="Teléfono">
-    <button class="btn btn-km7" onclick="crearClie()">Guardar</button>
+    <input type="tel" id="ncTel" class="form-control mb-3 bg-light border-0" placeholder="Teléfono"><button class="btn btn-km7" onclick="crearClie()">Guardar</button>
 </div></div></div>
 
 <div class="modal fade" id="modProspecto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
-    <h5 class="fw-bold mb-3">Nuevo Prospecto</h5>
-    <input type="text" id="npNombre" class="form-control mb-2 bg-light border-0" placeholder="Lugar"><input type="text" id="npContacto" class="form-control mb-2 bg-light border-0" placeholder="Contacto"><input type="tel" id="npTel" class="form-control mb-2 bg-light border-0" placeholder="Tel">
+    <h5 class="fw-bold mb-3">Nuevo Prospecto</h5><input type="text" id="npNombre" class="form-control mb-2 bg-light border-0" placeholder="Lugar"><input type="text" id="npContacto" class="form-control mb-2 bg-light border-0" placeholder="Contacto"><input type="tel" id="npTel" class="form-control mb-2 bg-light border-0" placeholder="Tel">
     <select id="npTemp" class="form-select mb-3 bg-light border-0"><option value="frio">❄️ Frío</option><option value="tibio">⛅ Tibio</option><option value="caliente">🔥 Caliente</option></select>
     <button class="btn btn-km7" onclick="crearPrsp()">Añadir</button>
 </div></div></div>
@@ -192,54 +180,32 @@
     }
 
     async function abrirProspecto(id, nombre, contacto, temp) {
-        currentProspectoId = id;
-        document.getElementById('logNombre').innerText = nombre;
-        document.getElementById('logContacto').innerText = contacto;
-        document.getElementById('logTemp').value = temp;
-        document.getElementById('logGestion').value = "";
-        document.getElementById('logHistorial').innerHTML = "Cargando...";
-        modLogCRM.show();
+        currentProspectoId = id; document.getElementById('logNombre').innerText = nombre; document.getElementById('logContacto').innerText = contacto; document.getElementById('logTemp').value = temp; document.getElementById('logGestion').value = ""; document.getElementById('logHistorial').innerHTML = "Cargando..."; modLogCRM.show();
         const logs = await callAPI('getSeguimientos', null, id);
-        document.getElementById('logHistorial').innerHTML = logs.map(l => `
-            <div class="log-item">
-                <div class="fw-bold mb-1" style="font-size:0.7rem;">${l[2]}</div>
-                <div>${l[4]}</div> 
-                ${l[5] ? `<div class="text-primary mt-1" style="font-size:0.7rem;">Próxima: ${l[5]}</div>` : ''}
-            </div>`).join('') || '<p class="text-muted small">Sin gestiones.</p>';
+        document.getElementById('logHistorial').innerHTML = logs.map(l => `<div class="log-item"><div class="fw-bold mb-1" style="font-size:0.7rem;">${l[2]}</div><div>${l[4]}</div>${l[5] ? `<div class="text-primary mt-1" style="font-size:0.7rem;">Próxima: ${l[5]}</div>` : ''}</div>`).join('') || '<p class="text-muted small">Sin gestiones.</p>';
     }
 
-    async function cambiarTermometro() {
-        const nuevaTemp = document.getElementById('logTemp').value;
-        await callAPI('actualizarTermometro', null, currentProspectoId, nuevaTemp);
-        loadCRM();
-    }
-
+    async function cambiarTermometro() { await callAPI('actualizarTermometro', null, currentProspectoId, document.getElementById('logTemp').value); loadCRM(); }
     async function guardarLog() {
-        const gestion = document.getElementById('logGestion').value;
-        if(!gestion) return alert("Escribí la gestión");
-        await callAPI('agregarLogCRM', { idProspecto: currentProspectoId, gestion: gestion, proxima: document.getElementById('logProxima').value });
+        const g = document.getElementById('logGestion').value; if(!g) return alert("Escribí la gestión");
+        await callAPI('agregarLogCRM', { idProspecto: currentProspectoId, gestion: g, proxima: document.getElementById('logProxima').value });
         abrirProspecto(currentProspectoId, document.getElementById('logNombre').innerText, document.getElementById('logContacto').innerText, document.getElementById('logTemp').value);
     }
 
     function toggleMedioPago() { document.getElementById('divMedioPago').classList.toggle('hidden', document.getElementById('estadoPago').value !== 'Pagado'); }
-    
     function addItem() { 
         const clie = clientes.find(c => c[0] == document.getElementById('clienteSel').value);
         const prod = productos.find(p => p[0] == document.getElementById('prodSel').value);
         const p = parseFloat(clie && clie[2] === "Mayorista" ? prod[6] : prod[5]);
         const c = parseFloat(document.getElementById('cant').value);
-        carrito.push({ idProd: prod[0], nombre: prod[1], cant: c, precio: p, subtotal: c * p });
-        renderCar();
+        carrito.push({ idProd: prod[0], nombre: prod[1], cant: c, precio: p, subtotal: c * p }); renderCar();
     }
-
     function renderCar() {
         let h = '', st = 0;
         carrito.forEach((i, idx) => { st += i.subtotal; h += `<div class="card-custom py-2 d-flex justify-content-between align-items-center mb-2 shadow-sm"><span><b>${i.nombre}</b> <small class="text-muted">x${i.cant}</small></span><span><b>$${i.subtotal.toLocaleString()}</b> <i class="bi bi-x-circle text-danger ms-2" onclick="carrito.splice(${idx},1);renderCar()"></i></span></div>`; });
         const desc = parseFloat(document.getElementById('descuentoVenta').value) || 0;
-        document.getElementById('listaItems').innerHTML = h;
-        document.getElementById('totalVenta').innerText = Math.max(0, st - desc).toLocaleString();
+        document.getElementById('listaItems').innerHTML = h; document.getElementById('totalVenta').innerText = Math.max(0, st - desc).toLocaleString();
     }
-
     async function enviarVenta() {
         document.getElementById('loader').style.display = 'flex';
         await callAPI('registrarVenta', { idCliente: document.getElementById('clienteSel').value, total: document.getElementById('totalVenta').innerText, descuento: document.getElementById('descuentoVenta').value || 0, estadoPago: document.getElementById('estadoPago').value, estadoEntrega: document.getElementById('estadoEntrega').value, medioPago: document.getElementById('estadoPago').value === 'Pagado' ? document.getElementById('medioPago').value : '', nota: document.getElementById('notaVenta').value, items: carrito });
@@ -255,26 +221,27 @@
         const d = await callAPI('getCaja');
         document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
         document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
-        document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `
+        document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => {
+            // Separamos Nombre de Cliente y Nota si existe el separador '|'
+            let partes = m[3].split(' | ');
+            let nombre = partes[0];
+            let nota = partes[1] ? ` <span class="mov-nota">• ${partes[1]}</span>` : "";
+            
+            return `
             <div class="mov-item shadow-sm d-flex justify-content-between align-items-center" onclick="abrirEdicionMov('${m[0]}','${m[3]}','${m[4]}','${m[6]}')">
                 <div>
                     <div class="mov-sub">${m[1].split(' ')[0]} • ${m[2]}</div>
-                    <div class="mov-info">${m[3]}</div>
+                    <div class="mov-info">${nombre}${nota}</div>
                     <span class="badge-medio">${m[6] || 'Efectivo'}</span>
                 </div>
                 <div class="text-end">
                     <h6 class="m-0 fw-bold ${m[2]=='Ingreso'?'text-success':'text-danger'}">${m[2]=='Ingreso'?'+':'-'}$${m[4]}</h6>
                 </div>
-            </div>`).join('');
+            </div>`;
+        }).join('');
     }
 
-    function ver(id, el) {
-        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section'));
-        document.getElementById(id).classList.add('active-section');
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
-    }
-
+    function ver(id, el) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section')); document.getElementById(id).classList.add('active-section'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
     function toggleDeudas() { document.getElementById('listaDeudas').classList.toggle('hidden'); }
     function abrirEdicionMov(id, desc, monto, medio) { document.getElementById('editMovId').value = id; document.getElementById('editMovDesc').value = desc; document.getElementById('editMovMonto').value = monto.replace(/[$.]/g, '').replace(',', '.'); document.getElementById('editMovMedio').value = medio || 'Efectivo'; modMov.show(); }
     async function guardarEdicionMov() { await callAPI('modificarMovimiento', { id: document.getElementById('editMovId').value, descripcion: document.getElementById('editMovDesc').value, monto: document.getElementById('editMovMonto').value, medio: document.getElementById('editMovMedio').value }); modMov.hide(); loadCaja(); }
