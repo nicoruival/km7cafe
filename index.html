@@ -2,161 +2,118 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Cafe - Fleet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Km7 Cafe</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        :root { --km7-brown: #4e342e; --km7-gold: #c6a664; --km7-light: #fdfaf6; }
-        body { background-color: #f8f9fa; padding-bottom: 90px; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        .nav-bottom { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0; z-index: 9999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
-        .nav-item { text-align: center; color: #aaa; background: none; border: none; font-size: 0.75rem; flex: 1; }
+        :root { --km7-brown: #4e342e; }
+        body { background: #f4f4f4; padding-bottom: 80px; }
+        .nav-bottom { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; z-index: 1000; }
+        .nav-item { flex: 1; text-align: center; padding: 10px; color: #888; border: none; background: none; font-size: 0.8rem; }
         .nav-item.active { color: var(--km7-brown); font-weight: bold; }
-        .nav-item i { font-size: 1.4rem; display: block; }
-        .view-section { display: none; }
-        .active-section { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .card-custom { border-radius: 16px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 15px; background: white; padding: 16px; position: relative; }
-        .btn-km7 { background-color: var(--km7-brown); color: white; border-radius: 10px; }
-        .badge-status { font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; }
-        .saldo-card { background: linear-gradient(135deg, #4e342e, #8d6e63); color: white; border-radius: 20px; padding: 20px; }
-        .btn-quick-vta { position: absolute; top: 16px; right: 16px; background: #f0f0f0; border: none; border-radius: 50%; width: 32px; height: 32px; }
-        .temp-caliente { border-left: 5px solid #ff4d4d; }
-        .temp-tibio { border-left: 5px solid #ffcc00; }
-        .temp-frio { border-left: 5px solid #00cccc; }
+        .nav-item i { font-size: 1.5rem; display: block; }
+        .view-section { display: none; padding: 20px; }
+        .active-section { display: block; }
+        .card-custom { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
+        .btn-km7 { background: var(--km7-brown); color: white; border-radius: 8px; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; z-index: 9999; }
     </style>
 </head>
 <body>
 
-<div class="container mt-4">
+<div id="loader" class="loading-overlay">
+    <div class="spinner-border text-brown"></div>
+</div>
+
+<div class="container">
     <div id="sec-venta" class="view-section active-section">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold m-0">☕ Km7 Venta</h4>
-            <button class="btn btn-sm btn-outline-dark rounded-pill" onclick="modNewCliente.show()">+ Nuevo Cliente</button>
-        </div>
+        <h4 class="fw-bold mb-3">☕ Nueva Venta</h4>
         <div class="card-custom">
-            <label class="small fw-bold text-muted mb-1">CLIENTE</label>
+            <label class="small fw-bold">CLIENTE</label>
             <select id="clienteSel" class="form-select mb-3 border-0 bg-light"></select>
-            <label class="small fw-bold text-muted mb-1">PRODUCTO</label>
-            <div class="d-flex gap-2 mb-3">
+            <label class="small fw-bold">PRODUCTO</label>
+            <div class="d-flex gap-2 mb-2">
                 <select id="prodSel" class="form-select border-0 bg-light"></select>
                 <input type="number" id="cant" class="form-control w-25 border-0 bg-light" value="1">
                 <button class="btn btn-km7" onclick="addItem()">+</button>
             </div>
-            <label class="small fw-bold text-muted mb-1">NOTA</label>
-            <input type="text" id="notaVenta" class="form-control border-0 bg-light" placeholder="...">
+            <input type="text" id="notaVenta" class="form-control border-0 bg-light mt-2" placeholder="Notas...">
         </div>
         <div id="listaItems" class="mb-3"></div>
         <div class="card-custom bg-dark text-white d-flex justify-content-between align-items-center">
             <div><small>Total</small><h4 class="m-0">$<span id="totalVenta">0</span></h4></div>
-            <button class="btn btn-km7 px-4" onclick="saveVenta()">REGISTRAR</button>
+            <button class="btn btn-km7" onclick="enviarVenta()">LISTO</button>
         </div>
     </div>
 
     <div id="sec-historial" class="view-section">
-        <h4 class="fw-bold mb-3">Ventas</h4>
+        <h4 class="fw-bold mb-3">Ventas Recientes</h4>
         <div id="contenedorHistorial"></div>
     </div>
 
     <div id="sec-crm" class="view-section">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold m-0">CRM</h4>
-            <button class="btn btn-km7 btn-sm rounded-pill" onclick="modNewProspecto.show()">+ Nuevo</button>
+        <div class="d-flex justify-content-between">
+            <h4 class="fw-bold">CRM</h4>
+            <button class="btn btn-sm btn-km7" onclick="modNP.show()">+ Nuevo</button>
         </div>
-        <div id="listaP"></div>
+        <div id="listaP" class="mt-3"></div>
     </div>
 
-    <div id="sec-caja" class="view-section">
-        <h4 class="fw-bold mb-3">Caja</h4>
-        <div class="saldo-card mb-3 text-center"><small>SALDO</small><h2 id="cajaSaldo" class="fw-bold">$0</h2></div>
-        <div class="card-custom py-2 text-center mb-3">Pendiente: <b id="cajaPendiente" class="text-danger">$0</b></div>
-        <button class="btn btn-outline-danger w-100 mb-3" onclick="modGasto.show()">Registrar Gasto</button>
-        <div id="listaMovimientos"></div>
+    <div id="sec-caja" class="view-section text-center">
+        <div class="card-custom bg-km7 text-white p-4 mb-3" style="background: #4e342e;">
+            <small>SALDO CAJA</small>
+            <h1 id="cajaSaldo" class="fw-bold">$0</h1>
+        </div>
+        <div id="listaMovs"></div>
     </div>
 </div>
 
 <nav class="nav-bottom">
-    <button class="nav-item active" onclick="verSeccion('sec-venta', this)"><i class="bi bi-cup-hot"></i>Vender</button>
-    <button class="nav-item" onclick="verSeccion('sec-historial', this); loadHist();"><i class="bi bi-receipt"></i>Ventas</button>
-    <button class="nav-item" onclick="verSeccion('sec-crm', this); loadCRM();"><i class="bi bi-person-lines-fill"></i>CRM</button>
-    <button class="nav-item" onclick="verSeccion('sec-caja', this); loadCaja();"><i class="bi bi-wallet2"></i>Caja</button>
+    <button class="nav-item active" onclick="ver('sec-venta', this)"><i class="bi bi-plus-circle"></i>Venta</button>
+    <button class="nav-item" onclick="ver('sec-historial', this); loadHist();"><i class="bi bi-receipt"></i>Historial</button>
+    <button class="nav-item" onclick="ver('sec-crm', this); loadCRM();"><i class="bi bi-people"></i>CRM</button>
+    <button class="nav-item" onclick="ver('sec-caja', this); loadCaja();"><i class="bi bi-wallet2"></i>Caja</button>
 </nav>
 
-<div class="modal fade" id="modalNewCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><b>Nuevo Cliente</b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
-    <input type="text" id="clieNom" class="form-control mb-2" placeholder="Nombre">
-    <input type="text" id="clieTel" class="form-control mb-2" placeholder="Teléfono">
-    <select id="clieCat" class="form-select mb-3"><option value="Minorista">Minorista</option><option value="Mayorista">Mayorista</option></select>
-    <button class="btn btn-km7 w-100" onclick="saveNewCliente()">Guardar</button>
-</div></div></div></div>
+<div class="modal fade" id="modQV" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-3">
+    <input type="hidden" id="qvId">
+    <h6>Actualizar Venta</h6>
+    <select id="qvPago" class="form-select mb-2"><option>Pagado</option><option>Pendiente</option></select>
+    <select id="qvEntrega" class="form-select mb-3"><option>Entregado</option><option>Pendiente</option></select>
+    <button class="btn btn-km7 w-100" onclick="updateVta()">Guardar</button>
+</div></div></div>
 
-<div class="modal fade" id="modalNewProspecto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><b>Nuevo Prospecto</b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
-    <input type="text" id="nNeg" class="form-control mb-2" placeholder="Negocio">
-    <input type="text" id="nCon" class="form-control mb-2" placeholder="Contacto">
-    <input type="text" id="nTel" class="form-control mb-2" placeholder="Tel">
-    <select id="nTemp" class="form-select mb-3"><option value="frio">Frío</option><option value="tibio">Tibio</option><option value="caliente">Caliente</option></select>
-    <button class="btn btn-km7 w-100" onclick="saveNewProspecto()">Crear</button>
-</div></div></div></div>
-
-<div class="modal fade" id="modalQuickVta" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body text-center p-4">
-    <input type="hidden" id="qVtaId">
-    <div class="d-flex gap-2 mb-3">
-        <select id="qVtaPago" class="form-select"><option>Pagado</option><option>Pendiente</option></select>
-        <select id="qVtaEntr" class="form-select"><option>Entregado</option><option>Pendiente</option></select>
-    </div>
-    <button class="btn btn-km7 w-100 mb-2" onclick="updateQuickVta()">Guardar</button>
-    <button class="btn btn-outline-success w-100" onclick="copyVtaToWS()">Copiar WhatsApp</button>
-</div></div></div></div>
-
-<div class="modal fade" id="modalGasto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body p-4">
-    <input type="text" id="gastoConcepto" class="form-control mb-2" placeholder="Concepto">
-    <input type="number" id="gastoMonto" class="form-control mb-3" placeholder="Monto">
-    <button class="btn btn-danger w-100" onclick="saveGasto()">Confirmar Gasto</button>
-</div></div></div></div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    let pData = [], cData = [], hLocal = [], carrito = [];
-    let modNewCliente, modNewProspecto, modQV, modGasto;
+    let productos = [], clientes = [], prospectos = [], carrito = [];
 
-    window.onload = () => {
-        modNewCliente = new bootstrap.Modal(document.getElementById('modalNewCliente'));
-        modNewProspecto = new bootstrap.Modal(document.getElementById('modalNewProspecto'));
-        modQV = new bootstrap.Modal(document.getElementById('modalQuickVta'));
-        modGasto = new bootstrap.Modal(document.getElementById('modalGasto'));
-        refreshInitData();
-    };
+    window.onload = () => { init(); };
 
-    function refreshInitData() {
-        google.script.run.withSuccessHandler(d => {
-            pData = d.productos; cData = d.clientes;
-            document.getElementById('prodSel').innerHTML = d.productos.map(p => `<option value="${p[0]}">${p[1]}</option>`).join('');
-            document.getElementById('clienteSel').innerHTML = '<option value="CLI-001">Consumidor Final</option>' + d.clientes.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
-        }).getFormData();
-    }
-
-    function verSeccion(id, el) {
-        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section'));
-        document.getElementById(id).classList.add('active-section');
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        el.classList.add('active');
-    }
-
-    function saveNewCliente() {
-        const d = { nombre: document.getElementById('clieNom').value, tel: document.getElementById('clieTel').value, cat: document.getElementById('clieCat').value };
-        google.script.run.withSuccessHandler(m => { alert(m); modNewCliente.hide(); refreshInitData(); }).crearCliente(d);
-    }
-
-    function saveNewProspecto() {
-        const d = { nombre: document.getElementById('nNeg').value, contacto: document.getElementById('nCon').value, tel: document.getElementById('nTel').value, temp: document.getElementById('nTemp').value };
-        google.script.run.withSuccessHandler(m => { alert(m); modNewProspecto.hide(); loadCRM(); }).crearProspecto(d);
+    function init() {
+        google.script.run
+            .withSuccessHandler(d => {
+                productos = d.productos;
+                clientes = d.clientes;
+                prospectos = d.prospectos;
+                document.getElementById('clienteSel').innerHTML = clientes.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
+                document.getElementById('prodSel').innerHTML = productos.map(p => `<option value="${p[0]}">${p[1]}</option>`).join('');
+                document.getElementById('loader').style.display = 'none';
+            })
+            .withFailureHandler(err => { alert("Error al cargar: " + err); })
+            .getFormData();
     }
 
     function addItem() {
-        let idP = document.getElementById('prodSel').value, idC = document.getElementById('clienteSel').value;
-        let prod = pData.find(x => x[0] == idP), clie = cData.find(x => x[0] == idC);
-        let esM = clie && clie[5] === "Mayorista";
-        let precio = parseFloat((esM ? prod[6] : prod[5]).toString().replace('$','').replace(',','.'));
-        let cant = parseFloat(document.getElementById('cant').value);
+        const idC = document.getElementById('clienteSel').value;
+        const idP = document.getElementById('prodSel').value;
+        const clie = clientes.find(c => c[0] == idC);
+        const prod = productos.find(p => p[0] == idP);
+        
+        // CORRECCIÓN DE ÍNDICE: En tu sheet el tipo es columna 3 (índice 2)
+        const esMayorista = clie && clie[2] === "Mayorista";
+        const precio = parseFloat(esMayorista ? prod[6] : prod[5]);
+        const cant = parseFloat(document.getElementById('cant').value);
+
         carrito.push({ idProd: idP, nombre: prod[1], cant, precio, subtotal: cant * precio });
         renderCar();
     }
@@ -165,78 +122,81 @@
         let h = '', t = 0;
         carrito.forEach((i, idx) => {
             t += i.subtotal;
-            h += `<div class="card-custom py-2 mb-2 d-flex justify-content-between align-items-center">
-                    <div><b>${i.nombre}</b><br><small>${i.cant} x $${i.precio}</small></div>
-                    <button class="btn btn-sm text-danger" onclick="carrito.splice(${idx},1); renderCar()"><i class="bi bi-trash"></i></button>
-                  </div>`;
+            h += `<div class="card-custom py-2 d-flex justify-content-between align-items-center">
+                <span>${i.nombre} (x${i.cant})</span>
+                <b>$${i.subtotal.toLocaleString()}</b>
+                <i class="bi bi-x-circle text-danger" onclick="carrito.splice(${idx},1);renderCar()"></i>
+            </div>`;
         });
         document.getElementById('listaItems').innerHTML = h;
         document.getElementById('totalVenta').innerText = t.toLocaleString();
     }
 
-    function saveVenta() {
-        if (!carrito.length) return alert("Vacio");
-        const v = { idCliente: document.getElementById('clienteSel').value, total: document.getElementById('totalVenta').innerText, estadoPago: 'Pendiente', estadoEntrega: 'Pendiente', nota: document.getElementById('notaVenta').value, items: carrito };
-        google.script.run.withSuccessHandler(m => { alert(m); carrito = []; renderCar(); }).registrarVenta(v);
+    function enviarVenta() {
+        if(!carrito.length) return;
+        const d = {
+            idCliente: document.getElementById('clienteSel').value,
+            total: document.getElementById('totalVenta').innerText,
+            estadoPago: 'Pendiente',
+            estadoEntrega: 'Pendiente',
+            nota: document.getElementById('notaVenta').value,
+            items: carrito
+        };
+        google.script.run.withSuccessHandler(res => {
+            alert(res); carrito = []; renderCar();
+        }).registrarVenta(d);
     }
 
-    function loadHist() { google.script.run.withSuccessHandler(d => { hLocal = d; renderHist(d); }).getHistorialCompleto(); }
-    function renderHist(d) {
-        document.getElementById('contenedorHistorial').innerHTML = d.map(v => `
-            <div class="card-custom">
-                <button class="btn-quick-vta" onclick="openQuickVta('${v.id}','${v.pago}','${v.entrega}')"><i class="bi bi-three-dots"></i></button>
-                <b>${v.clienteNombre}</b><br><small>${v.nota || ''}</small><br>
-                <span class="badge-status ${v.pago=='Pagado'?'bg-success text-white':'bg-warning text-dark'}">${v.pago}</span>
-                <h5 class="m-0 mt-2">$${v.total}</h5>
-            </div>`).join('');
-    }
-
-    function openQuickVta(id, p, e) {
-        document.getElementById('qVtaId').value = id;
-        document.getElementById('qVtaPago').value = p;
-        document.getElementById('qVtaEntr').value = e;
-        modQV.show();
-    }
-
-    function updateQuickVta() {
-        let id = document.getElementById('qVtaId').value, v = hLocal.find(x => x.id == id);
-        const d = { pago: document.getElementById('qVtaPago').value, entrega: document.getElementById('qVtaEntr').value, total: v.total, nota: v.nota, idCliente: v.idCliente };
-        google.script.run.withSuccessHandler(() => { modQV.hide(); loadHist(); }).actualizarVentaCompleta(id, d);
+    function loadHist() {
+        google.script.run.withSuccessHandler(d => {
+            document.getElementById('contenedorHistorial').innerHTML = d.map(v => `
+                <div class="card-custom" onclick="openQV('${v.id}','${v.pago}','${v.entrega}')">
+                    <div class="d-flex justify-content-between"><b>${v.clienteNombre}</b> <small>${v.pago}</small></div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span class="badge bg-light text-dark">${v.entrega}</span>
+                        <h5 class="m-0">$${v.total}</h5>
+                    </div>
+                </div>`).join('');
+        }).getHistorialCompleto();
     }
 
     function loadCRM() {
-        google.script.run.withSuccessHandler(d => {
-            document.getElementById('listaP').innerHTML = d.prospectos.filter(p => p[5]=='Activo').map(p => `
-                <div class="card-custom temp-${p[7]} py-3"><b>${p[1]}</b><br><small>${p[2]} - ${p[3]}</small></div>`).join('');
-        }).getFormData();
+        // En tu sheet el estado "Activo" está en la columna 6 (índice 5)
+        document.getElementById('listaP').innerHTML = prospectos.map(p => `
+            <div class="card-custom border-start border-4 ${p[7]=='caliente'?'border-danger':''}">
+                <b>${p[1]}</b><br><small>${p[2]} | ${p[3]}</small>
+            </div>`).join('');
     }
 
     function loadCaja() {
         google.script.run.withSuccessHandler(d => {
             document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
-            document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
-            document.getElementById('listaMovimientos').innerHTML = d.movimientos.map(m => `
-                <div class="card-custom py-2 d-flex justify-content-between">
-                    <div><small class="${m[2]=='Ingreso'?'text-success':'text-danger'}">${m[2]}</small><br><b>${m[3]}</b></div>
-                    <div class="text-end"><b>$${m[4]}</b></div>
+            document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `
+                <div class="card-custom d-flex justify-content-between">
+                    <span>${m[3]}</span><b>$${m[4]}</b>
                 </div>`).join('');
         }).getDatosCaja();
     }
 
-    function saveGasto() {
-        const d = { concept: document.getElementById('gastoConcepto').value, monto: document.getElementById('gastoMonto').value };
-        google.script.run.withSuccessHandler(() => { modGasto.hide(); loadCaja(); }).registrarGasto(d);
+    function ver(id, el) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section'));
+        document.getElementById(id).classList.add('active-section');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
     }
 
-    function copyVtaToWS() {
-        const id = document.getElementById('qVtaId').value;
-        const v = hLocal.find(x => x.id == id);
-        google.script.run.withSuccessHandler(det => {
-            let itemsText = det.map(i => `- ${i.nombreProd} x${i.cant}`).join('\n');
-            let txt = `☕ *KM7 CAFE*\n👤 ${v.clienteNombre}\n📦 *Items:*\n${itemsText}\n💰 *TOTAL:* $${v.total}`;
-            navigator.clipboard.writeText(txt).then(() => alert("Copiado"));
-        }).getDetalleVenta(id);
+    function openQV(id, p, e) {
+        document.getElementById('qvId').value = id;
+        document.getElementById('qvPago').value = p;
+        document.getElementById('qvEntrega').value = e;
+        new bootstrap.Modal('#modQV').show();
+    }
+
+    function updateVta() {
+        const d = { id: document.getElementById('qvId').value, pago: document.getElementById('qvPago').value, entrega: document.getElementById('qvEntrega').value };
+        google.script.run.withSuccessHandler(() => { location.reload(); }).actualizarVentaCompleta(d.id, d);
     }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
