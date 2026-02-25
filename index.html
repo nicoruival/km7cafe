@@ -1,279 +1,168 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 cafe - Gestión</title>
+    <title>Km7 Cafe - Fleet</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        :root { --km7: #1a1a1a; --gold: #c5a059; }
-        body { background: #f4f7f6; padding-bottom: 100px; font-family: 'Segoe UI', sans-serif; }
-        .nav-bottom { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0; z-index: 1050; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
-        .nav-item { text-align: center; color: #aaa; background: none; border: none; flex: 1; font-size: 0.75rem; }
-        .nav-item.active { color: var(--km7); font-weight: bold; }
-        .nav-item i { font-size: 1.5rem; display: block; }
-        .view-section { display: none; }
+        :root { --km7-brown: #4e342e; --km7-gold: #c6a664; --km7-light: #fdfaf6; }
+        body { background-color: #f8f9fa; padding-bottom: 90px; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #333; }
+        .nav-bottom { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0; z-index: 9999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .nav-item { text-align: center; color: #aaa; background: none; border: none; font-size: 0.75rem; flex: 1; transition: 0.3s; }
+        .nav-item.active { color: var(--km7-brown); font-weight: bold; }
+        .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 2px; }
+        
+        .view-section { display: none; animation: fadeIn 0.3s ease; }
         .active-section { display: block; }
-        .card-custom { border-radius: 16px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.04); background: #fff; padding: 16px; margin-bottom: 12px; position: relative; cursor: pointer; }
-        .btn-rayo { background: #ffc107; border: none; border-radius: 12px; width: 38px; height: 38px; color: #000; margin-right: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .btn-km7 { background: var(--km7); color: #fff; border-radius: 12px; border: none; font-weight: 500; }
-        .loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); display:none; justify-content:center; align-items:center; z-index:3000; }
-        .badge-km7 { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 600; text-transform: uppercase; }
-        /* Estilo para el link de whatsapp que parece botón */
-        #btnWS { text-decoration: none; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-        #btnWS.disabled { opacity: 0.5; pointer-events: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-custom { border-radius: 16px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 15px; background: white; padding: 16px; position: relative; }
+        .btn-km7 { background-color: var(--km7-brown); color: white; border-radius: 10px; font-weight: 600; }
+        .btn-km7:hover { background-color: #3e2723; color: white; }
+        
+        .badge-status { font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+        .saldo-card { background: linear-gradient(135deg, #4e342e, #8d6e63); color: white; border-radius: 20px; padding: 20px; box-shadow: 0 6px 15px rgba(78,52,46,0.2); }
+        .pendiente-card { background: white; border: 2px solid #eee; border-radius: 20px; padding: 20px; }
+        
+        .btn-quick-vta { position: absolute; top: 16px; right: 16px; background: #f0f0f0; border: none; border-radius: 50%; width: 32px; height: 32px; color: #555; }
+        .temp-caliente { border-left: 5px solid #ff4d4d; }
+        .temp-tibio { border-left: 5px solid #ffcc00; }
+        .temp-frio { border-left: 5px solid #00cccc; }
+
+        .item-carrito { border-bottom: 1px solid #f0f0f0; padding: 8px 0; }
+        .floating-add { position: fixed; bottom: 100px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--km7-brown); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 100; border: none; }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loader"><div class="spinner-border text-dark"></div></div>
-
-<div class="container mt-3">
+<div class="container mt-4">
     <div id="sec-venta" class="view-section active-section">
-        <h5 class="fw-bold mb-3">Nueva Venta</h5>
-        <div class="card-custom" style="cursor:default;">
-            <select id="clienteSel" class="form-select mb-2" onchange="cambioCliente()"></select>
-            <div id="canalDiv" class="mb-2" style="display:none;">
-                <select id="canalVenta" class="form-select border-primary"><option>WhatsApp</option><option>Directo</option><option>Tienda Nube</option><option>Instagram</option></select>
-            </div>
-            <div id="descAviso" class="small text-success fw-bold mb-2" style="display:none;"></div>
-            <div class="row g-2 mb-2">
-                <div class="col-6"><select id="metodoVenta" class="form-select"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
-                <div class="col-6"><select id="pagoVenta" class="form-select"><option value="Pagado">Pagado</option><option value="Pendiente">Pendiente</option></select></div>
-            </div>
-            <input type="text" id="notaVenta" class="form-control mb-3" placeholder="Nota de venta...">
-            <div class="d-flex gap-2">
-                <select id="prodSel" class="form-select"></select>
-                <input type="number" id="cant" class="form-control w-25 text-center" value="1">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold m-0">☕ Km7 Venta</h4>
+            <button class="btn btn-sm btn-outline-dark rounded-pill" onclick="modNewCliente.show()">+ Nuevo Cliente</button>
+        </div>
+        
+        <div class="card-custom">
+            <label class="small fw-bold text-muted mb-1">CLIENTE</label>
+            <select id="clienteSel" class="form-select mb-3 shadow-sm border-0 bg-light"></select>
+            
+            <label class="small fw-bold text-muted mb-1">PRODUCTO</label>
+            <div class="d-flex gap-2 mb-3">
+                <select id="prodSel" class="form-select shadow-sm border-0 bg-light"></select>
+                <input type="number" id="cant" class="form-control w-25 shadow-sm border-0 bg-light text-center" value="1">
                 <button class="btn btn-km7" onclick="addItem()"><i class="bi bi-plus-lg"></i></button>
             </div>
+            
+            <label class="small fw-bold text-muted mb-1">NOTA ADICIONAL</label>
+            <input type="text" id="notaVenta" class="form-control mb-1 shadow-sm border-0 bg-light" placeholder="Ej: Dirección, horario...">
         </div>
-        <div id="listaCarrito"></div>
-        <div class="card-custom d-flex justify-content-between align-items-center mt-2 p-3">
-            <h3 class="m-0 fw-bold">$<span id="totalVenta">0</span></h3>
-            <button class="btn btn-km7 btn-lg px-4" onclick="saveVenta()">REGISTRAR</button>
-        </div>
-    </div>
 
-    <div id="sec-clientes" class="view-section">
-        <h5 class="fw-bold mb-3">Mis Clientes</h5>
-        <div id="listaClientes"></div>
+        <div id="listaItems" class="mb-3"></div>
+
+        <div class="card-custom bg-dark text-white d-flex justify-content-between align-items-center py-3">
+            <div><small class="d-block opacity-75">Total a cobrar</small><h4 class="m-0 fw-bold">$<span id="totalVenta">0</span></h4></div>
+            <button class="btn btn-km7 px-4 py-2" onclick="saveVenta()">FINALIZAR</button>
+        </div>
     </div>
 
     <div id="sec-historial" class="view-section">
-        <h5 class="fw-bold mb-3">Historial</h5>
+        <h4 class="fw-bold mb-3">Ventas Recientes</h4>
         <div id="contenedorHistorial"></div>
     </div>
 
-    <div id="sec-caja" class="view-section">
-        <h5 class="fw-bold mb-3">Caja Km7</h5>
-        <div class="row g-2 mb-3">
-            <div class="col-6"><div class="card-custom bg-dark text-white text-center p-3" style="cursor:default;"><small>SALDO</small><h4 id="cajaSaldo" class="m-0">$0</h4></div></div>
-            <div class="col-6" onclick="abrirModDeudas()"><div class="card-custom bg-warning text-center p-3"><small>DEUDAS (Ver)</small><h4 id="cajaPendiente" class="m-0">$0</h4></div></div>
+    <div id="sec-crm" class="view-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold m-0">Ruta CRM</h4>
+            <button class="btn btn-km7 btn-sm rounded-pill px-3" onclick="modNewProspecto.show()">+ Nuevo Prospecto</button>
         </div>
-        <div id="listaMovCaja"></div>
+        <div id="listaP"></div>
     </div>
 
-    <div id="sec-crm" class="view-section">
-        <h5 class="fw-bold mb-3">CRM Prospectos</h5>
-        <div id="listaCRM"></div>
+    <div id="sec-caja" class="view-section">
+        <h4 class="fw-bold mb-3">Balance</h4>
+        <div class="row g-3 mb-4">
+            <div class="col-12"><div class="saldo-card"><small class="opacity-75">SALDO DISPONIBLE</small><h2 id="cajaSaldo" class="fw-bold m-0">$0</h2></div></div>
+            <div class="col-12"><div class="pendiente-card d-flex justify-content-between align-items-center"><small class="fw-bold text-muted text-uppercase">Pendiente de Cobro</small><h4 id="cajaPendiente" class="m-0 text-warning fw-bold">$0</h4></div></div>
+        </div>
+        <button class="btn btn-outline-danger w-100 mb-4 rounded-pill fw-bold" onclick="modGasto.show()"><i class="bi bi-dash-circle me-2"></i> Registrar Gasto</button>
+        <h6 class="fw-bold small text-muted text-uppercase mb-3">Movimientos de Caja</h6>
+        <div id="listaMovimientos"></div>
     </div>
 </div>
 
 <nav class="nav-bottom">
-    <button class="nav-item active" onclick="verSeccion('sec-venta', this)"><i class="bi bi-bag-plus"></i>Venta</button>
-    <button class="nav-item" onclick="verSeccion('sec-clientes', this); loadClientes();"><i class="bi bi-people"></i>Clientes</button>
-    <button class="nav-item" onclick="verSeccion('sec-historial', this); loadHist();"><i class="bi bi-receipt"></i>Lista</button>
-    <button class="nav-item" onclick="verSeccion('sec-crm', this); loadCRM();"><i class="bi bi-lightning-charge"></i>CRM</button>
-    <button class="nav-item" onclick="verSeccion('sec-caja', this); loadCaja();"><i class="bi bi-bank"></i>Caja</button>
+    <button class="nav-item active" onclick="verSeccion('sec-venta', this)"><i class="bi bi-cup-hot"></i>Vender</button>
+    <button class="nav-item" onclick="verSeccion('sec-historial', this); loadHist();"><i class="bi bi-receipt"></i>Ventas</button>
+    <button class="nav-item" onclick="verSeccion('sec-crm', this); loadCRM();"><i class="bi bi-person-lines-fill"></i>CRM</button>
+    <button class="nav-item" onclick="verSeccion('sec-caja', this); loadCaja();"><i class="bi bi-wallet2"></i>Caja</button>
 </nav>
 
-<div class="modal fade" id="modQuick" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
-    <h5 class="fw-bold mb-3 text-center">Acción Rápida</h5>
-    <input type="hidden" id="qId"><input type="hidden" id="qOri">
-    
-    <div class="mb-3"><label class="small fw-bold">Método</label><select id="qMetodo" class="form-select" onchange="actualizarLinkWS()"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
-    
-    <div class="row g-2 mb-3">
-        <div class="col-6"><label class="small fw-bold">Pago</label><select id="qPago" class="form-select" onchange="actualizarLinkWS()"><option>Pagado</option><option>Pendiente</option></select></div>
-        <div class="col-6"><label class="small fw-bold">Entrega</label><select id="qEntrega" class="form-select" onchange="actualizarLinkWS()"><option>Entregado</option><option>Pendiente</option></select></div>
-    </div>
+<div class="modal fade" id="modalNewCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg" style="border-radius:20px"><div class="modal-header border-0"><b>Nuevo Cliente</b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+    <input type="text" id="clieNom" class="form-control mb-2" placeholder="Nombre / Negocio">
+    <input type="text" id="clieTel" class="form-control mb-2" placeholder="Teléfono">
+    <select id="clieCat" class="form-select mb-3"><option value="Minorista">Minorista</option><option value="Mayorista">Mayorista</option></select>
+    <button class="btn btn-km7 w-100 p-2" onclick="saveNewCliente()">Guardar Cliente</button>
+</div></div></div></div>
 
-    <div class="mb-3"><label class="small fw-bold">Desc % Extra</label><input type="number" id="qDesc" class="form-control" oninput="recalcQ()"></div>
-    
-    <h4 class="text-center fw-bold mb-3">Total: $<span id="qTotalTxt">0</span></h4>
-    
-    <a id="btnWS" href="#" target="_blank" class="btn btn-success w-100 mb-2 py-3 fw-bold shadow-sm disabled">
-        <i class="bi bi-whatsapp me-2"></i> COMPARTIR TICKET FULL
-    </a>
-    
-    <button class="btn btn-km7 w-100" onclick="saveQuick()">ACTUALIZAR DATOS</button>
-    <div id="wsStatus" class="text-center small text-muted mt-1">Cargando productos...</div>
-</div></div></div>
+<div class="modal fade" id="modalNewProspecto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0" style="border-radius:20px"><div class="modal-header border-0"><b>Añadir Prospecto CRM</b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+    <input type="text" id="nNeg" class="form-control mb-2" placeholder="Nombre Negocio">
+    <input type="text" id="nCon" class="form-control mb-2" placeholder="Contacto">
+    <input type="text" id="nTel" class="form-control mb-2" placeholder="Teléfono">
+    <label class="small fw-bold mt-2">Temperatura</label>
+    <select id="nTemp" class="form-select mb-3"><option value="frio">Frío ❄️</option><option value="tibio">Tibio ☀️</option><option value="caliente">Caliente 🔥</option></select>
+    <button class="btn btn-km7 w-100" onclick="saveNewProspecto()">Crear Prospecto</button>
+</div></div></div></div>
 
-<div class="modal fade" id="modCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
-    <h5 class="fw-bold mb-3">Editar Cliente</h5>
-    <input type="hidden" id="clieId">
-    <div class="mb-2"><label class="small fw-bold">Nombre</label><input type="text" id="clieNom" class="form-control"></div>
-    <div class="row g-2 mb-2">
-        <div class="col-6"><label class="small fw-bold">WhatsApp</label><input type="text" id="clieTel" class="form-control"></div>
-        <div class="col-6"><label class="small fw-bold">Categoría</label><select id="clieCat" class="form-select"><option>Minorista</option><option>Mayorista</option><option>VIP</option></select></div>
-    </div>
-    <div class="mb-2"><label class="small fw-bold">Email</label><input type="text" id="clieMail" class="form-control"></div>
-    <div class="mb-2"><label class="small fw-bold">Dirección</label><input type="text" id="clieDir" class="form-control"></div>
-    <div class="mb-3"><label class="small fw-bold">Descuento Fijo (%)</label><input type="number" id="clieDesc" class="form-control border-success"></div>
-    <button class="btn btn-km7 w-100" onclick="saveCliente()">GUARDAR CAMBIOS</button>
-</div></div></div>
+<div class="modal fade" id="modalGasto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0" style="border-radius:20px"><div class="modal-header border-0"><b>Registrar Salida</b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="gastoConcepto" class="form-control mb-2" placeholder="¿En qué se gastó?"><input type="number" id="gastoMonto" class="form-control mb-3" placeholder="Monto $"><button class="btn btn-danger w-100" onclick="saveGasto()">Confirmar Egreso</button></div></div></div></div>
 
-<div class="modal fade" id="modEditTotal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content p-4 rounded-4 border-0">
-    <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="fw-bold m-0">Editar Venta</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-    <input type="hidden" id="eId">
-    <div class="row g-2 mb-3">
-        <div class="col-6"><label class="small fw-bold">Pago</label><select id="ePago" class="form-select"><option>Pagado</option><option>Pendiente</option></select></div>
-        <div class="col-6"><label class="small fw-bold">Entrega</label><select id="eEntrega" class="form-select"><option>Entregado</option><option>Pendiente</option></select></div>
-    </div>
-    <div class="mb-3"><label class="small fw-bold">Método</label><select id="eMetodo" class="form-select"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select></div>
-    <div class="mb-3"><label class="small fw-bold">Nota</label><input type="text" id="eNota" class="form-control"></div>
-    <hr>
-    <div id="editItemsArea" class="mb-3"></div>
+<div class="modal fade" id="modalQuickVta" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0" style="border-radius:20px"><div class="modal-body p-4 text-center">
+    <h5 class="fw-bold mb-3">Gestionar Pedido</h5>
+    <input type="hidden" id="qVtaId">
     <div class="d-flex gap-2 mb-3">
-        <select id="eProdSel" class="form-select form-select-sm"></select>
-        <button class="btn btn-sm btn-dark" onclick="addItemToEdit()">+</button>
+        <select id="qVtaPago" class="form-select"><option>Pagado</option><option>Pendiente</option></select>
+        <select id="qVtaEntr" class="form-select"><option>Entregado</option><option>Pendiente</option></select>
     </div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="m-0 fw-bold">Total: $<span id="eTotal">0</span></h4>
-        <button class="btn btn-km7 px-4" onclick="saveEditTotal()">GUARDAR</button>
-    </div>
-    <button class="btn btn-outline-danger btn-sm w-100" onclick="deleteVenta()">ELIMINAR VENTA COMPLETA</button>
-</div></div></div>
+    <button class="btn btn-km7 w-100 mb-2" onclick="updateQuickVta()">Guardar Cambios</button>
+    <button class="btn btn-outline-success w-100" onclick="copyVtaToWS()"><i class="bi bi-whatsapp"></i> Copiar para WhatsApp</button>
+</div></div></div></div>
 
-<div class="modal fade" id="modCRM" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
-    <h5 id="crmNombre" class="fw-bold mb-3"></h5>
-    <input type="hidden" id="crmId">
-    <textarea id="crmNota" class="form-control mb-3" placeholder="Registrar gestión..."></textarea>
-    <button class="btn btn-km7 w-100 mb-3" onclick="saveCRM()">Guardar Acción</button>
-    <div id="crmHistorial" class="small" style="max-height:200px; overflow-y:auto;"></div>
-</div></div></div>
-
-<div class="modal fade" id="modDeudas" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0">
-    <h5 class="fw-bold mb-3">Deudas Pendientes</h5>
-    <div id="listaDeudasBody" style="max-height:300px; overflow-y:auto;"></div>
-    <button class="btn btn-secondary w-100 mt-3" data-bs-dismiss="modal">Cerrar</button>
-</div></div></div>
+<div class="modal fade" id="modalQuickCRM" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0" style="border-radius:20px"><div class="modal-header border-0"><b id="qCrmTit"></b><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+    <input type="hidden" id="qCrmId">
+    <select id="qCrmAcc" class="form-select mb-2"><option>Llamada</option><option>Visita</option><option>WhatsApp</option><option>Venta</option></select>
+    <textarea id="qCrmCom" class="form-control mb-2" placeholder="¿Qué pasó?"></textarea>
+    <button class="btn btn-km7 w-100 mb-3" onclick="saveQuickCRM()">Registrar Evento</button>
+    <div id="qCrmHistorial" class="small overflow-auto" style="max-height: 150px;"></div>
+</div></div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxq69gkGczhOf683lUZXDpPPAofrcZSOdhFBvijAou44ZGFYadgeIrH_zG_SwlJtBuc/exec'; 
-
-    let pData=[], cData=[], hLocal=[], carrito=[], editCarrito=[], deudasLocal=[], itemsTemporalesWS=[];
-    let loader, mQuick, mEdit, mDeudas, mClie, mCRM;
+    const API_URL = "URL_DE_TU_DESPLIEGUE_AQUI"; // Si usas Vercel, pegala acá.
+    let pData = [], cData = [], prData = [], hLocal = [], carrito = [];
+    let modNewCliente, modNewProspecto, modGasto, modQV, modQC;
 
     window.onload = () => {
-        loader = document.getElementById('loader');
-        mQuick = new bootstrap.Modal(document.getElementById('modQuick'));
-        mEdit = new bootstrap.Modal(document.getElementById('modEditTotal'));
-        mDeudas = new bootstrap.Modal(document.getElementById('modDeudas'));
-        mClie = new bootstrap.Modal(document.getElementById('modCliente'));
-        mCRM = new bootstrap.Modal(document.getElementById('modCRM'));
-        refresh();
+        modNewCliente = new bootstrap.Modal(document.getElementById('modalNewCliente'));
+        modNewProspecto = new bootstrap.Modal(document.getElementById('modalNewProspecto'));
+        modGasto = new bootstrap.Modal(document.getElementById('modalGasto'));
+        modQV = new bootstrap.Modal(document.getElementById('modalQuickVta'));
+        modQC = new bootstrap.Modal(document.getElementById('modalQuickCRM'));
+        refreshInitData();
     };
 
-    function showLoader(v) { loader.style.display = v ? 'flex' : 'none'; }
-    function cleanNum(v) {
-        if(!v) return 0;
-        let s = v.toString().replace(/\$/g,'').replace(/\s/g,'');
-        if (s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
-        else s = s.replace(/\./g, '').replace(',', '.');
-        return parseFloat(s) || 0;
+    function callAPI(action, extraParams = {}, callback) {
+        const data = { action, ...extraParams };
+        google.script.run.withSuccessHandler(callback).doGet({ parameter: { data: JSON.stringify(data) } });
     }
 
-    async function callAPI(action, method = 'GET', body = null) {
-        showLoader(true);
-        try {
-            let dataParam = encodeURIComponent(JSON.stringify({ action: action, ...body }));
-            let url = `${API_URL}?data=${dataParam}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            showLoader(false);
-            return data;
-        } catch (e) {
-            showLoader(false);
-            console.error(e);
-            return {error: true};
-        }
-    }
-
-    // --- LÓGICA DE WHATSAPP PARA IPHONE ---
-    
-    async function openQuick(id) {
-        let v = hLocal.find(x => x.id == id);
-        document.getElementById('qId').value = id;
-        document.getElementById('qPago').value = v.pago;
-        document.getElementById('qEntrega').value = v.entrega;
-        document.getElementById('qMetodo').value = v.metodo;
-        
-        // Bloqueamos el botón mientras cargan los productos
-        const btn = document.getElementById('btnWS');
-        const status = document.getElementById('wsStatus');
-        btn.classList.add('disabled');
-        status.innerText = "Cargando productos del ticket...";
-        
-        mQuick.show();
-
-        // Buscamos productos en segundo plano
-        itemsTemporalesWS = await callAPI('getDetalleVenta', 'GET', {id: id});
-        
-        let base = itemsTemporalesWS.reduce((a,c)=>a+cleanNum(c.subtotal),0);
-        document.getElementById('qOri').value = base;
-        document.getElementById('qDesc').value = 0;
-        
-        recalcQ(); // Esto también actualiza el link de WhatsApp
-        
-        btn.classList.remove('disabled');
-        status.innerText = "✅ Ticket listo para enviar";
-    }
-
-    function recalcQ() {
-        let base = parseFloat(document.getElementById('qOri').value);
-        let d = parseFloat(document.getElementById('qDesc').value || 0);
-        document.getElementById('qTotalTxt').innerText = Math.round(base * (1 - d/100)).toLocaleString('es-AR');
-        actualizarLinkWS();
-    }
-
-    function actualizarLinkWS() {
-        let idVenta = document.getElementById('qId').value;
-        let v = hLocal.find(x => x.id == idVenta);
-        if(!v || itemsTemporalesWS.length === 0) return;
-
-        let totalTxt = document.getElementById('qTotalTxt').innerText;
-        let pago = document.getElementById('qPago').value;
-        let entrega = document.getElementById('qEntrega').value;
-        let metodo = document.getElementById('qMetodo').value;
-
-        let det = itemsTemporalesWS.map(i => `• *${i.cant}x* ${i.nombre}`).join('%0A');
-        let msg = `☕ *Km7 cafe* %0A` +
-                  `---------------------------%0A` +
-                  `👤 *Cliente:* ${v.clienteNombre}%0A` +
-                  `📦 *Detalle:*%0A${det}%0A` +
-                  `---------------------------%0A` +
-                  `💰 *Total:* $${totalTxt}%0A` +
-                  `💳 *Pago:* ${pago} (${metodo})%0A` +
-                  `🚚 *Entrega:* ${entrega}%0A%0A` +
-                  `¡Muchas gracias!`;
-
-        document.getElementById('btnWS').href = "https://api.whatsapp.com/send?text=" + msg;
-    }
-
-    // --- FIN LÓGICA IPHONE ---
-
-    async function refresh() {
-        const d = await callAPI('getFormData');
-        if(!d || d.error) return;
-        pData=d.productos; cData=d.clientes;
-        document.getElementById('prodSel').innerHTML = d.productos.map(p => `<option value="${p[0]}">${p[1]}</option>`).join('');
-        document.getElementById('eProdSel').innerHTML = document.getElementById('prodSel').innerHTML;
-        document.getElementById('clienteSel').innerHTML = '<option value="CLI-001" data-desc="0">Consumidor Final</option>' + d.clientes.map(c => `<option value="${c[0]}" data-desc="${c[6]}">${c[1]}</option>`).join('');
+    function refreshInitData() {
+        callAPI('getFormData', {}, d => {
+            pData = d.productos; cData = d.clientes; prData = d.prospectos;
+            document.getElementById('prodSel').innerHTML = d.productos.map(p => `<option value="${p[0]}">${p[1]}</option>`).join('');
+            let clieHtml = '<option value="CLI-001">Consumidor Final</option>' + d.clientes.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
+            document.getElementById('clienteSel').innerHTML = clieHtml;
+        });
     }
 
     function verSeccion(id, el) {
@@ -283,163 +172,125 @@
         el.classList.add('active');
     }
 
-    function cambioCliente() {
-        const sel = document.getElementById('clienteSel');
-        const desc = parseFloat(sel.options[sel.selectedIndex].getAttribute('data-desc') || 0);
-        document.getElementById('canalDiv').style.display = (sel.value === "CLI-001") ? 'block' : 'none';
-        document.getElementById('descAviso').style.display = desc > 0 ? 'block' : 'none';
-        document.getElementById('descAviso').innerText = `✅ Desc. Fijo ${desc}% aplicado`;
-        renderCar();
+    // --- NUEVAS FUNCIONES ---
+    function saveNewCliente() {
+        const d = { nombre: document.getElementById('clieNom').value, tel: document.getElementById('clieTel').value, cat: document.getElementById('clieCat').value, desc: 'Añadido desde App' };
+        callAPI('crearCliente', { datos: d }, m => { alert(m); modNewCliente.hide(); refreshInitData(); });
+    }
+
+    function saveNewProspecto() {
+        const d = { nombre: document.getElementById('nNeg').value, contacto: document.getElementById('nCon').value, tel: document.getElementById('nTel').value, temp: document.getElementById('nTemp').value };
+        callAPI('crearProspecto', { datos: d }, m => { alert(m); modNewProspecto.hide(); loadCRM(); });
     }
 
     function addItem() {
-        let p = pData.find(x => x[0] == document.getElementById('prodSel').value);
-        let idClie = document.getElementById('clienteSel').value;
-        let clie = cData.find(x => x[0] == idClie);
+        let idProd = document.getElementById('prodSel').value, idClie = document.getElementById('clienteSel').value;
+        let producto = pData.find(x => x[0] == idProd), cliente = cData.find(x => x[0] == idClie);
+        let esMayorista = cliente && cliente[5] === "Mayorista";
+        let precio = parseFloat(esMayorista ? producto[6].replace('$','').replace(',','.') : producto[5].replace('$','').replace(',','.'));
         let cant = parseFloat(document.getElementById('cant').value);
-        let precio = (idClie !== "CLI-001" && clie && clie[5] === "Mayorista") ? cleanNum(p[6]) : cleanNum(p[5]);
-        carrito.push({idProd: p[0], nombre: p[1], cant: cant, precio: precio, subtotal: precio * cant});
+        carrito.push({ idProd, nombre: producto[1], cant, precio, subtotal: cant * precio });
         renderCar();
     }
 
     function renderCar() {
-        let h='', t=0;
-        const sel = document.getElementById('clienteSel');
-        const dFijo = parseFloat(sel.options[sel.selectedIndex].getAttribute('data-desc') || 0);
-        carrito.forEach((i, idx) => { t += i.subtotal; h += `<div class="card-custom p-2 mb-1 d-flex justify-content-between align-items-center" style="cursor:default;"><span>x${i.cant} ${i.nombre}</span><b>$${Math.round(i.subtotal).toLocaleString('es-AR')} <i class="bi bi-trash text-danger ms-2" onclick="carrito.splice(${idx},1);renderCar()"></i></b></div>`; });
-        if(dFijo > 0) t = t * (1 - dFijo/100);
-        document.getElementById('totalVenta').innerText = Math.round(t).toLocaleString('es-AR');
-        document.getElementById('listaCarrito').innerHTML = h;
+        let h = '', t = 0;
+        carrito.forEach((i, idx) => {
+            t += i.subtotal;
+            h += `<div class="card-custom py-2 mb-2 d-flex justify-content-between align-items-center shadow-none border">
+                    <div><b>${i.nombre}</b><br><small class="text-muted">${i.cant} x $${i.precio}</small></div>
+                    <button class="btn btn-sm text-danger" onclick="carrito.splice(${idx},1); renderCar()"><i class="bi bi-trash"></i></button>
+                  </div>`;
+        });
+        document.getElementById('listaItems').innerHTML = h;
+        document.getElementById('totalVenta').innerText = t.toLocaleString();
     }
 
-    async function saveVenta() {
-        if(!carrito.length) return;
-        const d = { idCliente: document.getElementById('clienteSel').value, canal: document.getElementById('canalVenta').value || "Directo", total: document.getElementById('totalVenta').innerText, metodoPago: document.getElementById('metodoVenta').value, estadoPago: document.getElementById('pagoVenta').value, nota: document.getElementById('notaVenta').value, items: carrito, estadoEntrega: 'Pendiente' };
-        await callAPI('registrarVenta', 'GET', { datos: d });
-        carrito=[]; renderCar(); alert("Venta Km7 Registrada");
+    function saveVenta() {
+        if (carrito.length === 0) return alert("Carrito vacío");
+        const v = { idCliente: document.getElementById('clienteSel').value, total: document.getElementById('totalVenta').innerText, estadoPago: 'Pendiente', estadoEntrega: 'Pendiente', nota: document.getElementById('notaVenta').value, items: carrito };
+        callAPI('registrarVenta', { datos: v }, m => { alert(m); carrito = []; renderCar(); document.getElementById('notaVenta').value = ""; });
     }
 
-    async function loadHist() {
-        const d = await callAPI('getHistorial');
-        if(!d || d.error) return;
-        hLocal = d;
+    function loadHist() { callAPI('getHistorial', {}, d => { hLocal = d; renderHist(d); }); }
+
+    function renderHist(d) {
         document.getElementById('contenedorHistorial').innerHTML = d.map(v => `
-            <div class="card-custom d-flex align-items-center p-3" onclick="openFullEdit('${v.id}')">
-                <button class="btn-rayo" onclick="event.stopPropagation(); openQuick('${v.id}')"><i class="bi bi-lightning-fill"></i></button>
-                <div class="flex-grow-1"><b>${v.clienteNombre}</b><br><small>${v.fecha}</small></div>
-                <div class="text-end">
-                    <b>$${cleanNum(v.total).toLocaleString('es-AR')}</b><br>
-                    <span class="badge-km7 bg-${v.pago=='Pagado'?'success':'warning text-dark'}">${v.pago}</span>
-                    <span class="badge-km7 bg-${v.entrega=='Entregado'?'info text-white':'secondary'}">${v.entrega}</span>
+            <div class="card-custom">
+                <button class="btn-quick-vta" onclick="openQuickVta('${v.id}','${v.pago}','${v.entrega}')"><i class="bi bi-three-dots-vertical"></i></button>
+                <div class="pe-4">
+                    <b class="d-block">${v.clienteNombre}</b>
+                    <small class="text-muted d-block mb-2">${v.nota || ''}</small>
+                    <span class="badge-status ${v.pago=='Pagado'?'bg-success text-white':'bg-warning text-dark'}">${v.pago}</span>
+                    <span class="badge-status ${v.entrega=='Entregado'?'bg-info text-white':'bg-light text-dark'}">${v.entrega}</span>
+                    <h5 class="m-0 mt-2 fw-bold text-km7">$${v.total}</h5>
                 </div>
             </div>`).join('');
     }
 
-    async function openFullEdit(id) {
-        let v = hLocal.find(x => x.id == id);
-        document.getElementById('eId').value = id;
-        document.getElementById('ePago').value = v.pago;
-        document.getElementById('eEntrega').value = v.entrega;
-        document.getElementById('eMetodo').value = v.metodo;
-        document.getElementById('eNota').value = v.nota;
-        const items = await callAPI('getDetalleVenta', 'GET', {id: id});
-        editCarrito = items.map(i => ({...i, precio: cleanNum(i.precio), subtotal: cleanNum(i.subtotal)}));
-        renderEditCar(); mEdit.show();
+    function openQuickVta(id, p, e) {
+        document.getElementById('qVtaId').value = id;
+        document.getElementById('qVtaPago').value = p;
+        document.getElementById('qVtaEntr').value = e;
+        modQV.show();
     }
 
-    function renderEditCar() {
-        let h='', t=0;
-        editCarrito.forEach((i, idx) => { t+=i.subtotal; h+=`<div class="d-flex justify-content-between border-bottom py-2"><span>${i.nombre} (x${i.cant})</span><b>$${Math.round(i.subtotal).toLocaleString('es-AR')} <i class="bi bi-trash text-danger ms-2" onclick="editCarrito.splice(${idx},1);renderEditCar()"></i></b></div>`; });
-        document.getElementById('eTotal').innerText = Math.round(t).toLocaleString('es-AR');
-        document.getElementById('editItemsArea').innerHTML = h;
+    function updateQuickVta() {
+        let id = document.getElementById('qVtaId').value, v = hLocal.find(x => x.id == id);
+        const d = { pago: document.getElementById('qVtaPago').value, entrega: document.getElementById('qVtaEntr').value, total: v.total, nota: v.nota, idCliente: v.idCliente };
+        callAPI('actualizarVenta', { id, datos: d }, () => { modQV.hide(); loadHist(); });
     }
 
-    function addItemToEdit() {
-        let p = pData.find(x => x[0] == document.getElementById('eProdSel').value);
-        editCarrito.push({idProd: p[0], nombre: p[1], cant: 1, precio: cleanNum(p[5]), subtotal: cleanNum(p[5])});
-        renderEditCar();
+    function loadCRM() {
+        callAPI('getFormData', {}, d => {
+            document.getElementById('listaP').innerHTML = d.prospectos.filter(p => p[5]=='Activo').map(p => `
+                <div class="card-custom temp-${p[7]} py-3" onclick="openQuickCRM('${p[0]}','${p[1]}')">
+                    <div class="d-flex justify-content-between"><b>${p[1]}</b> <small>${p[7].toUpperCase()}</small></div>
+                    <small class="text-muted">${p[2]} • ${p[3]}</small>
+                </div>`).join('');
+        });
     }
 
-    async function saveEditTotal() {
-        const d = { total: document.getElementById('eTotal').innerText, metodo: document.getElementById('eMetodo').value, pago: document.getElementById('ePago').value, nota: document.getElementById('eNota').value, entrega: document.getElementById('eEntrega').value, items: editCarrito };
-        await callAPI('actualizarVenta', 'GET', { id: document.getElementById('eId').value, datos: d });
-        mEdit.hide(); loadHist();
+    function openQuickCRM(id, nom) {
+        document.getElementById('qCrmId').value = id;
+        document.getElementById('qCrmTit').innerText = nom;
+        modQC.show();
+        callAPI('getCRM', { id }, h => {
+            document.getElementById('qCrmHistorial').innerHTML = h.map(e => `<div class="mb-2 border-bottom pb-1"><small class="fw-bold">${e[3]}:</small> ${e[4]}</div>`).join('');
+        });
     }
 
-    async function deleteVenta() {
-        if(!confirm("¿Borrar venta definitivamente?")) return;
-        await callAPI('eliminarVenta', 'GET', { id: document.getElementById('eId').value });
-        mEdit.hide(); loadHist();
+    function saveQuickCRM() {
+        callAPI('registrarCRM', { id: document.getElementById('qCrmId').value, accion: document.getElementById('qCrmAcc').value, comentario: document.getElementById('qCrmCom').value }, () => { modQC.hide(); });
     }
 
-    async function saveQuick() {
-        let v = hLocal.find(x => x.id == document.getElementById('qId').value);
-        const items = await callAPI('getDetalleVenta', 'GET', {id: v.id});
-        const d = { total: document.getElementById('qTotalTxt').innerText, pago: document.getElementById('qPago').value, entrega: document.getElementById('qEntrega').value, metodo: document.getElementById('qMetodo').value, nota: v.nota, items: items };
-        await callAPI('actualizarVenta', 'GET', { id: v.id, datos: d });
-        mQuick.hide(); loadHist();
+    function loadCaja() {
+        callAPI('getCaja', {}, d => {
+            document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
+            document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
+            document.getElementById('listaMovimientos').innerHTML = d.movimientos.map(m => `
+                <div class="card-custom py-2 shadow-none border mb-2 d-flex justify-content-between align-items-center">
+                    <div><small class="${m[2]=='Ingreso'?'text-success':'text-danger'} fw-bold">${m[2]}</small><br><b>${m[3]}</b></div>
+                    <div class="text-end"><b>$${m[4]}</b><br><button class="btn btn-sm text-muted p-0" onclick="borrarMov('${m[0]}')"><i class="bi bi-trash"></i></button></div>
+                </div>`).join('');
+        });
     }
 
-    async function loadCaja() {
-        const d = await callAPI('getCaja');
-        if(!d || d.error) return;
-        deudasLocal = d.deudas;
-        document.getElementById('cajaSaldo').innerText = '$' + Math.round(d.saldoActual).toLocaleString('es-AR');
-        document.getElementById('cajaPendiente').innerText = '$' + Math.round(d.pendienteCobro).toLocaleString('es-AR');
-        document.getElementById('listaMovCaja').innerHTML = d.movimientos.map(m => `
-            <div class="card-custom p-2 mb-2 border-start border-4 border-${m[2]=='Ingreso'?'success':'danger'}" style="cursor:default;">
-                <div class="d-flex justify-content-between"><b>${m[3]}</b><span>$${cleanNum(m[4]).toLocaleString('es-AR')}</span></div>
-                <small>${m[1]} | ${m[6]}</small>
-            </div>`).join('');
+    function saveGasto() {
+        const d = { concept: document.getElementById('gastoConcepto').value, monto: document.getElementById('gastoMonto').value };
+        callAPI('registrarGasto', { datos: d }, () => { modGasto.hide(); loadCaja(); });
     }
 
-    function abrirModDeudas() {
-        document.getElementById('listaDeudasBody').innerHTML = deudasLocal.map(d => `<div class="p-2 border-bottom"><b>${d.cliente}</b><br><div class="d-flex justify-content-between"><small>${d.fecha}</small><span class="text-danger fw-bold">$${d.monto.toLocaleString('es-AR')}</span></div></div>`).join('') || "No hay deudas.";
-        mDeudas.show();
-    }
+    function borrarMov(id) { if(confirm("¿Borrar movimiento?")) callAPI('eliminarMovimientoCaja', { id }, () => loadCaja()); }
 
-    async function loadCRM() {
-        const d = await callAPI('getFormData');
-        if(!d || d.error) return;
-        document.getElementById('listaCRM').innerHTML = d.prospectos.map(p => `<div class="card-custom p-3" onclick="abrirCRM('${p[0]}','${p[1]}')"><b>${p[1]}</b><br><small>${p[2]} | ${p[4]}</small></div>`).join('');
-    }
-
-    async function abrirCRM(id, nombre) {
-        document.getElementById('crmId').value = id;
-        document.getElementById('crmNombre').innerText = nombre;
-        const h = await callAPI('getCRM', 'GET', {id: id});
-        document.getElementById('crmHistorial').innerHTML = h.map(e => `<div class="mb-2 border-bottom pb-1"><b>${e[3]}:</b> ${e[4]}<br><small>${e[2]}</small></div>`).join('') || 'Sin registros.';
-        mCRM.show();
-    }
-
-    async function saveCRM() {
-        await callAPI('registrarCRM', 'GET', { id: document.getElementById('crmId').value, accion: "Nota", comentario: document.getElementById('crmNota').value });
-        mCRM.hide();
-    }
-
-    async function loadClientes() {
-        const d = await callAPI('getFormData');
-        if(!d || d.error) return;
-        cData = d.clientes;
-        document.getElementById('listaClientes').innerHTML = d.clientes.map(c => `<div class="card-custom p-3" onclick="abrirModCliente('${c[0]}')"><b>${c[1]}</b><br><small>${c[2]} | Desc: ${c[6] || 0}%</small></div>`).join('');
-    }
-
-    function abrirModCliente(id) {
-        let c = cData.find(x => x[0] === id);
-        document.getElementById('clieId').value = id;
-        document.getElementById('clieNom').value = c[1];
-        document.getElementById('clieTel').value = c[2];
-        document.getElementById('clieMail').value = c[3];
-        document.getElementById('clieDir').value = c[4];
-        document.getElementById('clieCat').value = c[5];
-        document.getElementById('clieDesc').value = c[6] || 0;
-        mClie.show();
-    }
-
-    async function saveCliente() {
-        const d = { nombre: document.getElementById('clieNom').value, tel: document.getElementById('clieTel').value, mail: document.getElementById('clieMail').value, dir: document.getElementById('clieDir').value, cat: document.getElementById('clieCat').value, desc: document.getElementById('clieDesc').value };
-        await callAPI('actualizarCliente', 'GET', { id: document.getElementById('clieId').value, datos: d });
-        mClie.hide(); loadClientes();
+    function copyVtaToWS() {
+        const id = document.getElementById('qVtaId').value;
+        const v = hLocal.find(x => x.id == id);
+        callAPI('getDetalleVenta', { id }, detalles => {
+            let itemsText = detalles.map(i => `- ${i.nombreProd} x${i.cant}`).join('\n');
+            let txt = `☕ *KM7 CAFE - PEDIDO*\n👤 *Cliente:* ${v.clienteNombre}\n📦 *Items:*\n${itemsText}\n💰 *TOTAL:* $${v.total}\n📌 *Nota:* ${v.nota || '-'}`;
+            navigator.clipboard.writeText(txt).then(() => alert("Copiado al portapapeles"));
+        });
     }
 </script>
 </body>
