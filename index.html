@@ -3,75 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Cafe - Vercel Edition</title>
+    <title>Km7 Fleet - Pro Vercel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        :root { --km7: #4e342e; }
-        body { background: #f4f4f4; padding-bottom: 70px; }
-        .nav-bottom { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; }
-        .nav-item { flex: 1; text-align: center; padding: 10px; color: #888; text-decoration: none; font-size: 0.8rem; }
-        .nav-item.active { color: var(--km7); font-weight: bold; }
-        .view-section { display: none; padding: 20px; }
+        :root { --km7-brown: #4e342e; }
+        body { background: #f8f9fa; padding-bottom: 80px; font-family: 'Segoe UI', sans-serif; }
+        .nav-bottom { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .nav-item { flex: 1; text-align: center; padding: 12px; color: #aaa; border: none; background: none; font-size: 0.75rem; text-decoration: none; }
+        .nav-item.active { color: var(--km7-brown); font-weight: bold; }
+        .nav-item i { font-size: 1.4rem; display: block; }
+        .view-section { display: none; padding: 15px; animation: fadeIn 0.3s ease; }
         .active-section { display: block; }
-        .card-custom { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card-custom { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); position: relative; border: none; }
+        .btn-km7 { background: var(--km7-brown); color: white; border-radius: 10px; border: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; display: none; }
     </style>
 </head>
 <body>
 
-<div id="app">
+<div id="loader"><div class="spinner-border text-brown mb-2"></div><p>Sincronizando Km7...</p></div>
+
+<div class="container mt-2">
     <div id="sec-venta" class="view-section active-section">
-        <h4 class="fw-bold mb-3">☕ Nueva Venta (Vercel)</h4>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold m-0">☕ Nueva Venta</h4>
+            <button class="btn btn-sm btn-outline-dark rounded-pill" onclick="modNewCliente.show()">+ Cliente</button>
+        </div>
         <div class="card-custom">
-            <select id="clienteSel" class="form-select mb-2"></select>
-            <div class="d-flex gap-2">
-                <select id="prodSel" class="form-select"></select>
-                <input type="number" id="cant" class="form-control w-25" value="1">
+            <label class="small fw-bold text-muted">CLIENTE</label>
+            <select id="clienteSel" class="form-select mb-3 border-0 bg-light"></select>
+            <label class="small fw-bold text-muted">PRODUCTO</label>
+            <div class="d-flex gap-2 mb-2">
+                <select id="prodSel" class="form-select border-0 bg-light"></select>
+                <input type="number" id="cant" class="form-control w-25 border-0 bg-light" value="1">
                 <button class="btn btn-dark" onclick="addItem()">+</button>
             </div>
+            <input type="text" id="notaVenta" class="form-control border-0 bg-light mt-2" placeholder="Nota de venta...">
         </div>
         <div id="listaItems"></div>
         <div class="card-custom bg-dark text-white d-flex justify-content-between align-items-center mt-3">
-            <h4 class="m-0">$<span id="totalVenta">0</span></h4>
-            <button class="btn btn-primary" onclick="enviarVenta()">REGISTRAR</button>
+            <div><small>Total</small><h4 class="m-0">$<span id="totalVenta">0</span></h4></div>
+            <button class="btn btn-primary px-4" onclick="enviarVenta()">REGISTRAR</button>
         </div>
     </div>
 
     <div id="sec-historial" class="view-section">
-        <h4 class="fw-bold">Ventas</h4>
+        <h4 class="fw-bold mb-3">Historial</h4>
         <div id="histContent"></div>
+    </div>
+
+    <div id="sec-crm" class="view-section">
+        <div class="d-flex justify-content-between mb-3">
+            <h4 class="fw-bold">CRM Prospectos</h4>
+            <button class="btn btn-dark btn-sm rounded-pill" onclick="modNewProspecto.show()">+ Nuevo</button>
+        </div>
+        <div id="crmContent"></div>
+    </div>
+
+    <div id="sec-caja" class="view-section">
+        <div class="card-custom bg-km7 text-white text-center p-4" style="background: #4e342e;">
+            <small>EFECTIVO EN MANO</small>
+            <h1 id="cajaSaldo" class="fw-bold m-0">$0</h1>
+            <small id="cajaPendiente" class="text-warning">Pendiente: $0</small>
+        </div>
+        <button class="btn btn-outline-danger w-100 my-3 rounded-pill" onclick="modGasto.show()">Registrar Gasto</button>
+        <div id="cajaMovs"></div>
     </div>
 </div>
 
 <nav class="nav-bottom">
-    <a href="#" class="nav-item active" onclick="show('sec-venta')">Venta</a>
-    <a href="#" class="nav-item" onclick="show('sec-historial'); loadHist()">Historial</a>
+    <a href="javascript:void(0)" class="nav-item active" onclick="ver('sec-venta', this)"><i class="bi bi-cup-hot"></i>Venta</a>
+    <a href="javascript:void(0)" class="nav-item" onclick="ver('sec-historial', this); loadHist()"><i class="bi bi-receipt"></i>Ventas</a>
+    <a href="javascript:void(0)" class="nav-item" onclick="ver('sec-crm', this); loadCRM()"><i class="bi bi-people"></i>CRM</a>
+    <a href="javascript:void(0)" class="nav-item" onclick="ver('sec-caja', this); loadCaja()"><i class="bi bi-wallet2"></i>Caja</a>
 </nav>
 
+<div class="modal fade" id="modQV" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-3 rounded-4">
+    <input type="hidden" id="qvId">
+    <h6 class="fw-bold mb-3">Actualizar Venta</h6>
+    <select id="qvPago" class="form-select mb-2"><option>Pendiente</option><option>Pagado</option></select>
+    <select id="qvEntrega" class="form-select mb-3"><option>Pendiente</option><option>Entregado</option></select>
+    <div class="d-flex gap-2">
+        <button class="btn btn-dark w-100" onclick="updateVta()">Guardar</button>
+        <button class="btn btn-success" onclick="copyWS()"><i class="bi bi-whatsapp"></i></button>
+    </div>
+</div></div></div>
+
+<div class="modal fade" id="modGasto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-3">
+    <h6>Registrar Egreso</h6>
+    <input type="text" id="gastoConcepto" class="form-control mb-2" placeholder="Concepto">
+    <input type="number" id="gastoMonto" class="form-control mb-3" placeholder="Monto $">
+    <button class="btn btn-danger w-100" onclick="saveGasto()">Confirmar Gasto</button>
+</div></div></div>
+
+<div class="modal fade" id="modNewCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-3">
+    <h6>Nuevo Cliente</h6>
+    <input type="text" id="ncNom" class="form-control mb-2" placeholder="Nombre">
+    <input type="text" id="ncTel" class="form-control mb-2" placeholder="Teléfono">
+    <select id="ncCat" class="form-select mb-3"><option>Minorista</option><option>Mayorista</option></select>
+    <button class="btn btn-dark w-100" onclick="saveNewCliente()">Guardar Cliente</button>
+</div></div></div>
+
+<div class="modal fade" id="modNewProspecto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-3">
+    <h6>Nuevo Prospecto</h6>
+    <input type="text" id="npNom" class="form-control mb-2" placeholder="Negocio">
+    <input type="text" id="npCon" class="form-control mb-2" placeholder="Contacto">
+    <input type="text" id="npTel" class="form-control mb-2" placeholder="Tel">
+    <select id="npTemp" class="form-select mb-3"><option value="frio">Frío ❄️</option><option value="tibio">Tibio 🌤️</option><option value="caliente">Caliente 🔥</option></select>
+    <button class="btn btn-dark w-100" onclick="saveNewProspecto()">Crear Prospecto</button>
+</div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // ⚠️ REEMPLAZA ESTO CON TU URL DE IMPLEMENTACIÓN DE GOOGLE APPS SCRIPT
-    const API_URL = "https://script.google.com/macros/s/TU_ID_AQUI/exec";
+    // ⚠️ REEMPLAZA CON TU URL DE APP SCRIPT
+    const API_URL = "TU_URL_DE_IMPLEMENTACION_AQUI";
 
-    let productos = [], clientes = [], carrito = [];
+    let productos = [], clientes = [], prospectos = [], carrito = [], hLocal = [];
+    let modQV, modGasto, modNewCliente, modNewProspecto;
 
-    async function callAPI(action, data = null) {
+    window.onload = () => {
+        modQV = new bootstrap.Modal('#modQV');
+        modGasto = new bootstrap.Modal('#modGasto');
+        modNewCliente = new bootstrap.Modal('#modNewCliente');
+        modNewProspecto = new bootstrap.Modal('#modNewProspecto');
+        initData();
+    };
+
+    async function callAPI(action, data = null, id = null) {
+        document.getElementById('loader').style.display = 'flex';
         let url = `${API_URL}?action=${action}`;
+        if (id) url += `&id=${id}`;
         if (data) url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
-        const resp = await fetch(url);
-        return await resp.json();
+        
+        try {
+            const resp = await fetch(url);
+            const res = await resp.json();
+            document.getElementById('loader').style.display = 'none';
+            return res;
+        } catch (e) {
+            alert("Error de conexión: " + e);
+            document.getElementById('loader').style.display = 'none';
+        }
     }
 
-    window.onload = async () => {
-        const data = await callAPI('getFormData');
-        productos = data.productos;
-        clientes = data.clientes;
+    async function initData() {
+        const d = await callAPI('getFormData');
+        productos = d.productos; clientes = d.clientes; prospectos = d.prospectos;
         document.getElementById('clienteSel').innerHTML = clientes.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
         document.getElementById('prodSel').innerHTML = productos.map(p => `<option value="${p[0]}">${p[1]}</option>`).join('');
-    };
+    }
 
     function addItem() {
         const p = productos.find(x => x[0] == document.getElementById('prodSel').value);
         const c = clientes.find(x => x[0] == document.getElementById('clienteSel').value);
-        const precio = c[2] === "Mayorista" ? parseFloat(p[6]) : parseFloat(p[5]);
+        const esM = c && c[2] === "Mayorista";
+        const precio = esM ? parseFloat(p[6]) : parseFloat(p[5]);
         const cant = parseFloat(document.getElementById('cant').value);
         carrito.push({ idProd: p[0], nombre: p[1], cant, precio, subtotal: cant * precio });
         renderCar();
@@ -79,34 +167,91 @@
 
     function renderCar() {
         let t = 0;
-        document.getElementById('listaItems').innerHTML = carrito.map(i => {
+        document.getElementById('listaItems').innerHTML = carrito.map((i, idx) => {
             t += i.subtotal;
-            return `<div class="card-custom"><b>${i.nombre}</b> x${i.cant} - $${i.subtotal}</div>`;
+            return `<div class="card-custom py-2 d-flex justify-content-between align-items-center">
+                <span><b>${i.nombre}</b> (x${i.cant})</span>
+                <div><b>$${i.subtotal.toLocaleString()}</b> <i class="bi bi-x-circle text-danger ms-2" onclick="carrito.splice(${idx},1);renderCar()"></i></div>
+            </div>`;
         }).join('');
         document.getElementById('totalVenta').innerText = t.toLocaleString();
     }
 
     async function enviarVenta() {
-        const d = {
-            idCliente: document.getElementById('clienteSel').value,
-            total: document.getElementById('totalVenta').innerText,
-            estadoPago: 'Pendiente',
-            estadoEntrega: 'Pendiente',
-            items: carrito
-        };
+        if(!carrito.length) return;
+        const d = { idCliente: document.getElementById('clienteSel').value, total: document.getElementById('totalVenta').innerText, estadoPago: 'Pendiente', estadoEntrega: 'Pendiente', nota: document.getElementById('notaVenta').value, items: carrito };
         const res = await callAPI('registrarVenta', d);
-        alert(res.message);
-        carrito = []; renderCar();
+        alert(res.message); carrito = []; renderCar(); document.getElementById('notaVenta').value = "";
     }
 
     async function loadHist() {
-        const h = await callAPI('getHistorial');
-        document.getElementById('histContent').innerHTML = h.map(v => `<div class="card-custom"><b>${v.cliente}</b> - $${v.total}</div>`).join('');
+        const d = await callAPI('getHistorial');
+        hLocal = d;
+        document.getElementById('histContent').innerHTML = d.map(v => `
+            <div class="card-custom" onclick="openQV('${v.id}','${v.pago}','${v.entrega}')">
+                <div class="d-flex justify-content-between"><b>${v.clienteNombre}</b> <small class="text-muted">${v.pago}</small></div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span class="badge ${v.entrega=='Entregado'?'bg-success text-white':'bg-warning text-dark'} rounded-pill">${v.entrega}</span>
+                    <h5 class="m-0 fw-bold">$${v.total}</h5>
+                </div>
+            </div>`).join('');
     }
 
-    function show(id) {
+    async function loadCRM() {
+        const d = await callAPI('getFormData'); // Actualizamos prospectos
+        document.getElementById('crmContent').innerHTML = d.prospectos.map(p => `
+            <div class="card-custom border-start border-4 ${p[7]=='caliente'?'border-danger': p[7]=='tibio'?'border-warning':'border-info'}">
+                <b>${p[1]}</b><br><small>${p[2]} | ${p[3]}</small>
+            </div>`).join('');
+    }
+
+    async function loadCaja() {
+        const d = await callAPI('getCaja');
+        document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
+        document.getElementById('cajaPendiente').innerText = 'Pendiente Cobro: $' + d.pendienteCobro.toLocaleString();
+        document.getElementById('cajaMovs').innerHTML = d.movimientos.map(m => `
+            <div class="card-custom d-flex justify-content-between py-2">
+                <div><small class="${m[2]=='Ingreso'?'text-success':'text-danger'}">${m[2]}</small><br><b>${m[3]}</b></div>
+                <div class="text-end"><b>$${m[4]}</b></div>
+            </div>`).join('');
+    }
+
+    async function saveGasto() {
+        const d = { concept: document.getElementById('gastoConcepto').value, monto: document.getElementById('gastoMonto').value };
+        await callAPI('registrarGasto', d); modGasto.hide(); loadCaja();
+    }
+
+    async function saveNewCliente() {
+        const d = { nombre: document.getElementById('ncNom').value, tel: document.getElementById('ncTel').value, cat: document.getElementById('ncCat').value };
+        await callAPI('crearCliente', d); modNewCliente.hide(); initData();
+    }
+
+    function openQV(id, p, e) {
+        document.getElementById('qvId').value = id;
+        document.getElementById('qvPago').value = p;
+        document.getElementById('qvEntrega').value = e;
+        modQV.show();
+    }
+
+    async function updateVta() {
+        const id = document.getElementById('qvId').value;
+        const d = { pago: document.getElementById('qvPago').value, entrega: document.getElementById('qvEntrega').value };
+        await callAPI('actualizarVenta', d, id); modQV.hide(); loadHist();
+    }
+
+    async function copyWS() {
+        const id = document.getElementById('qvId').value;
+        const v = hLocal.find(x => x.id == id);
+        const det = await callAPI('getDetalleVenta', null, id);
+        let txt = `☕ *KM7 CAFE*\n👤 ${v.clienteNombre}\n📦 *Items:*\n${det.map(i=>`- ${i.nombreProd} x${i.cant}`).join('\n')}\n💰 *TOTAL:* $${v.total}`;
+        navigator.clipboard.writeText(txt).then(() => alert("Copiado al portapapeles"));
+    }
+
+    function ver(id, el) {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section'));
         document.getElementById(id).classList.add('active-section');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
     }
 </script>
 </body>
