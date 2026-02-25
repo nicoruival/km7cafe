@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Fleet v19.6</title>
+    <title>Km7 Fleet v19.7</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -19,7 +19,6 @@
         .nav-item.active { color: white; }
         .nav-item.active i { color: var(--km7-gold); }
         
-        /* ESTILOS HISTORIAL v19.6 */
         .hist-card { background: var(--km7-card); border-radius: 18px; padding: 14px; margin-bottom: 12px; border: none; box-shadow: 0 4px 15px rgba(44, 27, 14, 0.04); border-left: 5px solid #eee; position: relative; }
         .pend-entrega { border-left-color: #f39c12; }
         .listo-entrega { border-left-color: #28a745; }
@@ -29,8 +28,6 @@
         .pill-pagado { background: #e8f5e9; color: #2e7d32; }
         .pill-pendiente { background: #fff3e0; color: #ef6c00; }
         .pill-entrega { background: #f0f0f0; color: #555; margin-left: 4px; }
-        
-        /* CORRECCIÓN ESTADO ACTIVO FILTROS */
         .btn-filter { background: white; border: none; transition: 0.3s; color: #666; }
         .btn-filter-active { background: var(--km7-coffee) !important; color: white !important; transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important; }
 
@@ -50,7 +47,7 @@
 <body>
 
 <header class="app-header">
-    <div style="font-size:9px; font-weight:800; color:#ccc;">v19.6</div>
+    <div style="font-size:9px; font-weight:800; color:#ccc;">v19.7</div>
     <div class="header-logo">KM7 <span style="font-weight:300; color:var(--km7-gold)">CAFÉ</span></div>
     <div class="header-user">NR</div>
 </header>
@@ -107,7 +104,7 @@
     <div id="sec-caja" class="view-section">
         <div class="row g-2 mb-3">
             <div class="col-6"><div class="card-saldo bg-caja shadow-sm"><small class="opacity-75">CAJA REAL</small><h4 id="cajaSaldo" class="fw-bold m-0">$0</h4></div></div>
-            <div class="col-6"><div class="card-saldo bg-pendiente shadow-sm" onclick="toggleDeudas()"><small class="opacity-75">DEUDA CLIENTES</small><h4 id="cajaPendiente" class="fw-bold m-0">$0</h4></div></div>
+            <div class="col-6"><div class="card-saldo bg-pendiente shadow-sm" style="cursor: pointer" onclick="modals.deuda.show()"><small class="opacity-75">DEUDA CLIENTES</small><h4 id="cajaPendiente" class="fw-bold m-0">$0</h4></div></div>
         </div>
         <button class="btn btn-outline-danger w-100 mb-4 fw-bold border-2 py-3" onclick="modals.gasto.show()">
             <i class="bi bi-dash-circle me-2"></i>REGISTRAR GASTO
@@ -123,6 +120,7 @@
     <button class="nav-item" onclick="ver('sec-caja', this); loadCaja();"><i class="bi bi-wallet2"></i><span>CAJA</span></button>
 </nav>
 
+<div class="modal fade" id="modDeuda" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3 text-center">Detalle de Deudas</h5><div id="contDeudas" class="mb-3"></div><button class="btn btn-km7" data-bs-dismiss="modal">CERRAR</button></div></div></div>
 <div class="modal fade" id="modEditItem" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4"><h6 class="fw-bold mb-3">Editar Item</h6><input type="number" id="editCant" class="form-control mb-2"><input type="number" id="editPrecio" class="form-control mb-3"><div class="d-flex gap-2"><button class="btn btn-danger flex-grow-1" onclick="carrito.splice(editingIdx,1); renderCar(); modals.edit.hide();">Borrar</button><button class="btn btn-km7 flex-grow-1" onclick="saveEditItem()">Guardar</button></div></div></div></div>
 <div class="modal fade" id="modCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3">Nuevo Cliente</h5><input type="text" id="ncNombre" class="form-control mb-2" placeholder="Nombre"><select id="ncCat" class="form-select mb-2"><option>Minorista</option><option>Mayorista</option></select><input type="tel" id="ncTel" class="form-control mb-3" placeholder="Teléfono"><button class="btn btn-km7" onclick="crearClie()">GUARDAR</button></div></div></div>
 <div class="modal fade" id="modProspecto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3">Nuevo Prospecto</h5><input type="text" id="npNombre" class="form-control mb-2" placeholder="Nombre/Lugar"><input type="tel" id="npTel" class="form-control mb-3" placeholder="WhatsApp"><button class="btn btn-km7" onclick="crearPrsp()">AÑADIR</button></div></div></div>
@@ -134,7 +132,7 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbxq69gkGczhOf683lUZXDpPPAofrcZSOdhFBvijAou44ZGFYadgeIrH_zG_SwlJtBuc/exec";
     let productos = [], clientes = [], carrito = [], histData = [], prospectos = [], curPrspId = "";
     let fEntAct = false, fPagAct = false, editingIdx = -1;
-    const modals = { edit: new bootstrap.Modal('#modEditItem'), clie: new bootstrap.Modal('#modCliente'), prsp: new bootstrap.Modal('#modProspecto'), gasto: new bootstrap.Modal('#modGasto'), logs: new bootstrap.Modal('#modLogs') };
+    const modals = { edit: new bootstrap.Modal('#modEditItem'), clie: new bootstrap.Modal('#modCliente'), prsp: new bootstrap.Modal('#modProspecto'), gasto: new bootstrap.Modal('#modGasto'), logs: new bootstrap.Modal('#modLogs'), deuda: new bootstrap.Modal('#modDeuda') };
 
     function callAPI(action, data = null, id = null, extra = null, val = null) {
         return new Promise((resolve) => {
@@ -178,6 +176,12 @@
         const d = await callAPI('getCaja');
         document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
         document.getElementById('cajaPendiente').innerText = '$' + d.pendienteCobro.toLocaleString();
+        
+        // Carga el detalle en el modal de deudas
+        document.getElementById('contDeudas').innerHTML = d.detallesPendientes.length > 0 
+            ? d.detallesPendientes.map(p => `<div class="d-flex justify-content-between border-bottom py-2"><span style="font-size:13px">${p.cliente}</span><b style="font-size:13px">$${p.monto}</b></div>`).join('')
+            : '<p class="text-center text-muted">No hay deudas pendientes</p>';
+
         document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `
             <div class="card-custom py-2 d-flex justify-content-between border-start border-4 ${m.tipo=='Egreso'?'border-danger':'border-success'}">
                 <div class="d-flex flex-column">
@@ -199,7 +203,6 @@
     }
 
     async function loadHist() { histData = await callAPI('getHistorial'); renderHist(); }
-    
     function renderHist() {
         const b = document.getElementById('busqHist').value.toLowerCase();
         document.getElementById('contenedorHistorial').innerHTML = histData
@@ -244,17 +247,10 @@
     async function addLog() { await callAPI('agregarLogCRM', { idProspecto: curPrspId, gestion: document.getElementById('logGest').value }); document.getElementById('logGest').value=""; openLogs(curPrspId); }
     function ver(id, el) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section')); document.getElementById(id).classList.add('active-section'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
     function toggleMedioPago() { document.getElementById('divMedioPago').classList.toggle('hidden', document.getElementById('estadoPago').value !== 'Pagado'); }
-    function toggleDeudas() { document.getElementById('listaDeudas').classList.toggle('hidden'); }
     
     function toggleF(tipo) { 
-        if(tipo === 'entrega') { 
-            fEntAct = !fEntAct; 
-            document.getElementById('fEnt').classList.toggle('btn-filter-active', fEntAct); 
-        } 
-        if(tipo === 'pago') { 
-            fPagAct = !fPagAct; 
-            document.getElementById('fPag').classList.toggle('btn-filter-active', fPagAct); 
-        } 
+        if(tipo === 'entrega') { fEntAct = !fEntAct; document.getElementById('fEnt').classList.toggle('btn-filter-active', fEntAct); } 
+        if(tipo === 'pago') { fPagAct = !fPagAct; document.getElementById('fPag').classList.toggle('btn-filter-active', fPagAct); } 
         renderHist(); 
     }
 
