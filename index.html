@@ -199,7 +199,7 @@
     function shareVenta(id) {
         const v = histData.find(x => x.id === id);
         if(!v) return;
-        const msg = `*KM7 COFFEE ROASTERS*\n------------------\n📅 *Fecha:* ${v.fecha}\n👤 *Cliente:* ${v.clienteNombre}\n☕ *Productos:* ${v.productos}\n📝 *Nota:* {v.Nota}\n✅ *TOTAL:* $${v.total}\n------------------\n_Gracias por elegirnos_`; 
+        const msg = `*KM7 COFFEE ROASTERS*\n------------------\n📅 *Fecha:* ${v.fecha}\n👤 *Cliente:* ${v.clienteNombre}\n☕ *Productos:* ${v.productos}\n📝 *Nota:* {v.notaVenta}\n✅ *TOTAL:* $${v.total}\n------------------\n_Gracias por elegirnos_`; 
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
