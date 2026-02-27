@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Fleet v26.1</title>
+    <title>Km7 Fleet v27.0</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -19,22 +19,25 @@
         .nav-item.active { color: white; }
         .nav-item.active i { color: var(--km7-gold); }
         .card-custom { background: var(--km7-card); border-radius: 22px; padding: 20px; margin-bottom: 15px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
-        .hist-card { background: var(--km7-card); border-radius: 18px; padding: 14px; margin-bottom: 12px; border: none; box-shadow: 0 4px 15px rgba(44, 27, 14, 0.04); border-left: 5px solid #eee; position: relative; }
+        
+        /* HISTORIAL MEJORADO */
+        .hist-card { background: var(--km7-card); border-radius: 18px; padding: 18px; margin-bottom: 15px; border: none; box-shadow: 0 4px 15px rgba(44, 27, 14, 0.06); border-left: 6px solid #eee; position: relative; }
         .pend-entrega { border-left-color: #f39c12; }
         .listo-entrega { border-left-color: #28a745; }
-        .crm-card { background: var(--km7-card); border-radius: 20px; padding: 16px; margin-bottom: 12px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-        .temp-badge { font-size: 9px; padding: 4px 8px; border-radius: 8px; font-weight: 800; text-transform: uppercase; }
-        .temp-Caliente { background: #ffebee; color: #d32f2f; }
-        .temp-Tibio { background: #fff3e0; color: #ef6c00; }
-        .temp-Frío { background: #e3f2fd; color: #1976d2; }
-        .log-entry { border-left: 2px solid var(--km7-gold); padding-left: 12px; margin-bottom: 15px; position: relative; }
-        .log-entry small { color: #999; font-size: 10px; display: block; margin-bottom: 2px; }
-        .btn-action-small { width: 36px; height: 36px; border-radius: 10px; border: none; background: #f8f9fa; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: 0.2s; }
-        .btn-ws { background: #eaffea; color: #25d366; }
-        .status-pill { padding: 3px 8px; border-radius: 10px; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+        
+        /* BOTONES MÁS GRANDES */
+        .btn-action-big { width: 48px; height: 48px; border-radius: 14px; border: none; background: #f1f3f5; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: 0.2s; }
+        .btn-ws-big { background: #eaffea; color: #25d366; }
+        .btn-delete-big { background: #fff5f5; color: #fa5252; }
+        
+        .status-pill-big { padding: 6px 12px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
         .pill-pagado { background: #e8f5e9; color: #2e7d32; }
         .pill-pendiente { background: #fff3e0; color: #ef6c00; }
-        .pill-entrega { background: #f0f0f0; color: #555; margin-left: 4px; }
+        .pill-entrega { background: #f0f0f0; color: #555; }
+        
+        .prod-info { font-size: 13px; color: #555; background: #f8f9fa; padding: 10px; border-radius: 12px; margin: 12px 0; border: 1px dashed #ddd; }
+        .nota-info { font-size: 12px; color: var(--km7-gold); font-style: italic; margin-bottom: 12px; display: block; }
+
         .view-section { display: none; padding: 15px; animation: slideUp 0.3s ease-out; }
         .active-section { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -50,7 +53,7 @@
 <body>
 
 <header class="app-header">
-    <div style="font-size:9px; font-weight:800; color:#ccc;">v26.1</div>
+    <div style="font-size:9px; font-weight:800; color:#ccc;">v27.0</div>
     <div class="header-logo">KM7 <span style="font-weight:300; color:var(--km7-gold)">CAFÉ</span></div>
     <div class="header-user">NR</div>
 </header>
@@ -104,21 +107,12 @@
     </div>
 
     <div id="sec-crm" class="view-section">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="fw-bold m-0">Prospectos</h5>
-            <button class="btn btn-dark btn-sm rounded-pill px-4 py-2" style="font-size:12px; font-weight:800; background:var(--km7-coffee)" onclick="modals.prsp.show()">+ AÑADIR</button>
-        </div>
+        <div class="d-flex justify-content-between align-items-center mb-4"><h5 class="fw-bold m-0">Prospectos</h5><button class="btn btn-dark btn-sm rounded-pill px-4 py-2" style="font-size:12px; font-weight:800; background:var(--km7-coffee)" onclick="modals.prsp.show()">+ AÑADIR</button></div>
         <div id="listaP"></div>
     </div>
-
     <div id="sec-caja" class="view-section">
-        <div class="row g-2 mb-3">
-            <div class="col-6"><div class="card-saldo bg-caja shadow-sm"><small class="opacity-75">CAJA REAL</small><h4 id="cajaSaldo" class="fw-bold m-0">$0</h4></div></div>
-            <div class="col-6"><div class="card-saldo bg-pendiente shadow-sm" style="cursor: pointer" onclick="modals.deuda.show()"><small class="opacity-75">DEUDA CLIENTES</small><h4 id="cajaPendiente" class="fw-bold m-0">$0</h4></div></div>
-        </div>
-        <button class="btn btn-outline-danger w-100 mb-4 fw-bold border-2 py-3" onclick="modals.gasto.show()">
-            <i class="bi bi-dash-circle me-2"></i>REGISTRAR GASTO
-        </button>
+        <div class="row g-2 mb-3"><div class="col-6"><div class="card-saldo bg-caja shadow-sm"><small class="opacity-75">CAJA REAL</small><h4 id="cajaSaldo" class="fw-bold m-0">$0</h4></div></div><div class="col-6"><div class="card-saldo bg-pendiente shadow-sm" style="cursor: pointer" onclick="modals.deuda.show()"><small class="opacity-75">DEUDA CLIENTES</small><h4 id="cajaPendiente" class="fw-bold m-0">$0</h4></div></div></div>
+        <button class="btn btn-outline-danger w-100 mb-4 fw-bold border-2 py-3" onclick="modals.gasto.show()"><i class="bi bi-dash-circle me-2"></i>REGISTRAR GASTO</button>
         <div id="listaMovs"></div>
     </div>
 </div>
@@ -205,13 +199,58 @@
     function shareVenta(id) {
         const v = histData.find(x => x.id === id);
         if(!v) return;
-        // El texto preparado para compartir
         const msg = `*KM7 COFFEE ROASTERS*\n------------------\n📅 *Fecha:* ${v.fecha}\n👤 *Cliente:* ${v.clienteNombre}\n☕ *Productos:* ${v.productos}\n✅ *TOTAL:* $${v.total}\n------------------\n_Sistema de Ventas Fleet_`;
-        
-        // Al no poner "phone", WhatsApp abre el selector de contactos
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
+    async function delVenta(id) {
+        if(!confirm("¿Estás seguro de borrar esta venta? Esto afectará el historial y la caja.")) return;
+        document.getElementById('loader').style.display='flex';
+        await callAPI('eliminarVenta', null, id);
+        await loadHist();
+        document.getElementById('loader').style.display='none';
+    }
+
+    async function loadHist() { histData = await callAPI('getHistorial'); renderHist(); }
+    function renderHist() {
+        const b = document.getElementById('busqHist').value.toLowerCase();
+        document.getElementById('contenedorHistorial').innerHTML = histData
+            .filter(v => v.clienteNombre.toLowerCase().includes(b) || v.id.toLowerCase().includes(b))
+            .filter(v => !fEntAct || v.entrega === 'Pendiente').filter(v => !fPagAct || v.pago === 'Pendiente')
+            .map(v => `
+                <div class="hist-card ${v.entrega==='Entregado'?'listo-entrega':'pend-entrega'}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <b style="font-size:16px; display:block;">${v.clienteNombre}</b>
+                            <small class="text-muted" style="font-size:11px">${v.fecha}</small>
+                        </div>
+                        <b style="font-size:18px; color:var(--km7-coffee)">$${v.total}</b>
+                    </div>
+                    
+                    <div class="prod-info">
+                        <strong>Pedido:</strong> ${v.productos}
+                    </div>
+                    
+                    ${v.nota ? `<span class="nota-info"><i class="bi bi-info-circle me-1"></i>${v.nota}</span>` : ''}
+
+                    <div class="d-flex gap-2 mb-3">
+                        <span class="status-pill-big ${v.pago==='Pagado'?'pill-pagado':'pill-pendiente'}">${v.pago}</span>
+                        <span class="status-pill-big pill-entrega">${v.entrega}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex gap-2">
+                            <button class="btn-action-big" onclick="updStat('${v.id}','pago','${v.pago}')"><i class="bi bi-cash"></i></button>
+                            <button class="btn-action-big" onclick="updStat('${v.id}','entrega','${v.entrega}')"><i class="bi bi-truck"></i></button>
+                            <button class="btn-action-big btn-ws-big" onclick="shareVenta('${v.id}')"><i class="bi bi-whatsapp"></i></button>
+                        </div>
+                        <button class="btn-action-big btn-delete-big" onclick="delVenta('${v.id}')"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    // Funciones de CRM y Caja se mantienen...
     async function loadCaja() {
         const d = await callAPI('getCaja');
         document.getElementById('cajaSaldo').innerText = '$' + d.saldoActual.toLocaleString();
@@ -221,31 +260,19 @@
             : '<p class="text-center text-muted">No hay deudas pendientes</p>';
         document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `<div class="card-custom py-2 d-flex justify-content-between border-start border-4 ${m.tipo=='Egreso'?'border-danger':'border-success'}" style="cursor:${m.idReferencia?'pointer':'default'}" onclick="${m.idReferencia ? `verPopupVenta('${m.idReferencia}')` : ''}"><div class="d-flex flex-column"><span style="font-size:13px; font-weight:800">${m.tipo.toUpperCase()}: ${m.descripcion}</span><small class="text-muted" style="font-size:10px">${m.fecha} | Pago: ${m.medio}</small>${m.idReferencia ? `<small class="text-primary" style="font-size:9px; font-weight:bold"><i class="bi bi-info-circle"></i> VER DETALLE</small>` : ''}</div><b class="${m.tipo=='Egreso'?'text-danger':'text-success'}">${m.tipo=='Egreso'?'-':''}$${m.monto}</b></div>`).join('');
     }
-
     async function verPopupVenta(idVenta) {
         document.getElementById('loader').style.display='flex';
         if(histData.length === 0) histData = await callAPI('getHistorial');
         const v = histData.find(x => x.id === idVenta);
         document.getElementById('loader').style.display='none';
         if(!v) return alert("No se encontró");
-        document.getElementById('contDetVenta').innerHTML = `<div class="mb-2"><small class="text-muted">CLIENTE</small><br><b class="fs-5">${v.clienteNombre}</b></div><div class="mb-2"><small class="text-muted">PRODUCTOS</small><br><span class="text-primary fw-bold">${v.productos}</span></div><div class="d-flex justify-content-between mt-3 align-items-end"><div><span class="status-pill ${v.pago==='Pagado'?'pill-pagado':'pill-pendiente'}">${v.pago}</span></div><div class="text-end"><b class="fs-4">$${v.total}</b></div></div>`;
+        document.getElementById('contDetVenta').innerHTML = `<div class="mb-2"><small class="text-muted">CLIENTE</small><br><b class="fs-5">${v.clienteNombre}</b></div><div class="mb-2"><small class="text-muted">PRODUCTOS</small><br><span class="text-primary fw-bold">${v.productos}</span></div><div class="d-flex justify-content-between mt-3 align-items-end"><div><span class="status-pill-big ${v.pago==='Pagado'?'pill-pagado':'pill-pendiente'}">${v.pago}</span></div><div class="text-end"><b class="fs-4">$${v.total}</b></div></div>`;
         modals.detVenta.show();
     }
-
-    async function loadHist() { histData = await callAPI('getHistorial'); renderHist(); }
-    function renderHist() {
-        const b = document.getElementById('busqHist').value.toLowerCase();
-        document.getElementById('contenedorHistorial').innerHTML = histData
-            .filter(v => v.clienteNombre.toLowerCase().includes(b) || v.id.toLowerCase().includes(b))
-            .filter(v => !fEntAct || v.entrega === 'Pendiente').filter(v => !fPagAct || v.pago === 'Pendiente')
-            .map(v => `<div class="hist-card ${v.entrega==='Entregado'?'listo-entrega':'pend-entrega'}"><div class="d-flex justify-content-between"><div><b style="font-size:14px">${v.clienteNombre}</b><br><small class="text-muted" style="font-size:9px">${v.fecha}</small></div><b style="font-size:14px">$${v.total}</b></div><div class="my-2"><span class="status-pill ${v.pago==='Pagado'?'pill-pagado':'pill-pendiente'}">${v.pago}</span><span class="status-pill pill-entrega">${v.entrega}</span></div><div class="d-flex gap-2"><button class="btn-action-small" onclick="updStat('${v.id}','pago','${v.pago}')"><i class="bi bi-cash"></i></button><button class="btn-action-small" onclick="updStat('${v.id}','entrega','${v.entrega}')"><i class="bi bi-truck"></i></button><button class="btn-action-small btn-ws" onclick="shareVenta('${v.id}')"><i class="bi bi-whatsapp"></i></button></div></div>`).join('');
-    }
-
     async function loadCRM() {
         const d = await callAPI('getFormData'); prospectos = d.prospectos;
-        document.getElementById('listaP').innerHTML = prospectos.map(p => `<div class="crm-card"><div class="d-flex justify-content-between mb-2"><div><h6 class="fw-bold m-0">${p[1]}</h6><small class="text-muted">${p[3] || '-'}</small></div><span class="temp-badge temp-${p[7]}">${p[7]}</span></div><div class="d-flex gap-2"><button class="btn btn-sm flex-grow-1 border-0 bg-light fw-bold" style="font-size:11px" onclick="openLogs('${p[0]}')">LOGS</button><button class="btn-action-small btn-ws" onclick="window.open('https://wa.me/${p[3].replace(/\D/g,'')}', '_blank')"><i class="bi bi-whatsapp"></i></button></div></div>`).join('');
+        document.getElementById('listaP').innerHTML = prospectos.map(p => `<div class="crm-card"><div class="d-flex justify-content-between mb-2"><div><h6 class="fw-bold m-0">${p[1]}</h6><small class="text-muted">${p[3] || '-'}</small></div><span class="temp-badge temp-${p[7]}">${p[7]}</span></div><div class="d-flex gap-2"><button class="btn btn-sm flex-grow-1 border-0 bg-light fw-bold" style="font-size:11px" onclick="openLogs('${p[0]}')">LOGS</button><button class="btn-action-big btn-ws-big" style="width:36px; height:36px; font-size:15px" onclick="window.open('https://wa.me/${p[3].replace(/\D/g,'')}', '_blank')"><i class="bi bi-whatsapp"></i></button></div></div>`).join('');
     }
-
     async function openLogs(id) { curPrspId = id; modals.logs.show(); const l = await callAPI('getSeguimientos', null, id); document.getElementById('contLogs').innerHTML = l.map(x => `<div class="log-entry"><small>${x[2]}</small><div style="font-size:13px">${x[4]}</div></div>`).join(''); }
     async function addLog() { const txt = document.getElementById('logGest').value; if(!txt) return; await callAPI('agregarLogCRM', { idProspecto: curPrspId, gestion: txt }); document.getElementById('logGest').value=""; openLogs(curPrspId); }
     function ver(id, el) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section')); document.getElementById(id).classList.add('active-section'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
