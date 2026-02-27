@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Coffe Roasters v27.1</title>
+    <title>Km7 FleetCoffee Roasters v28.0</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -19,9 +19,15 @@
         .nav-item.active { color: white; }
         .nav-item.active i { color: var(--km7-gold); }
         .card-custom { background: var(--km7-card); border-radius: 22px; padding: 20px; margin-bottom: 15px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
-        .hist-card { background: var(--km7-card); border-radius: 18px; padding: 18px; margin-bottom: 15px; border: none; box-shadow: 0 4px 15px rgba(44, 27, 14, 0.06); border-left: 6px solid #eee; position: relative; }
+        
+        /* TARJETAS HISTORIAL Y CRM */
+        .hist-card { background: var(--km7-card); border-radius: 18px; padding: 18px; margin-bottom: 15px; border: none; box-shadow: 0 4px 15px rgba(44, 27, 14, 0.06); border-left: 6px solid #eee; position: relative; transition: 0.2s; }
+        .hist-card:active { transform: scale(0.98); }
         .pend-entrega { border-left-color: #f39c12; }
         .listo-entrega { border-left-color: #28a745; }
+        .border-cliente { border-left-color: #28a745; }
+        .border-prospecto { border-left-color: #17a2b8; }
+        
         .btn-action-big { width: 48px; height: 48px; border-radius: 14px; border: none; background: #f1f3f5; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: 0.2s; }
         .btn-ws-big { background: #eaffea; color: #25d366; }
         .btn-delete-big { background: #fff5f5; color: #fa5252; }
@@ -46,7 +52,7 @@
 <body>
 
 <header class="app-header">
-    <div style="font-size:9px; font-weight:800; color:#ccc;">v27.1</div>
+    <div style="font-size:9px; font-weight:800; color:#ccc;">v28.0</div>
     <div class="header-logo">KM7 <span style="font-weight:300; color:var(--km7-gold)">CAFÉ</span></div>
     <div class="header-user">NR</div>
 </header>
@@ -83,9 +89,16 @@
     </div>
 
     <div id="sec-crm" class="view-section">
-        <div class="d-flex justify-content-between align-items-center mb-4"><h5 class="fw-bold m-0">Prospectos</h5><button class="btn btn-dark btn-sm rounded-pill px-4 py-2" style="font-size:12px; font-weight:800; background:var(--km7-coffee)" onclick="modals.prsp.show()">+ AÑADIR</button></div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold m-0">Directorio</h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-dark btn-sm rounded-pill px-3 py-1" style="font-size:11px; font-weight:800; background:var(--km7-coffee)" onclick="modals.clie.show()">+ CLIENTE</button>
+                <button class="btn btn-dark btn-sm rounded-pill px-3 py-1" style="font-size:11px; font-weight:800; background:var(--km7-gold); border:none;" onclick="modals.prsp.show()">+ PROSPECTO</button>
+            </div>
+        </div>
         <div id="listaP"></div>
     </div>
+
     <div id="sec-caja" class="view-section">
         <div class="row g-2 mb-3"><div class="col-6"><div class="card-saldo bg-caja shadow-sm"><small class="opacity-75">CAJA REAL</small><h4 id="cajaSaldo" class="fw-bold m-0">$0</h4></div></div><div class="col-6"><div class="card-saldo bg-pendiente shadow-sm" style="cursor: pointer" onclick="modals.deuda.show()"><small class="opacity-75">DEUDA CLIENTES</small><h4 id="cajaPendiente" class="fw-bold m-0">$0</h4></div></div></div>
         <button class="btn btn-outline-danger w-100 mb-4 fw-bold border-2 py-3" onclick="modals.gasto.show()"><i class="bi bi-dash-circle me-2"></i>REGISTRAR GASTO</button>
@@ -106,20 +119,59 @@
 <div class="modal fade" id="modCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3">Nuevo Cliente</h5><input type="text" id="ncNombre" class="form-control mb-2" placeholder="Nombre"><select id="ncCat" class="form-select mb-2"><option>Minorista</option><option>Mayorista</option></select><input type="tel" id="ncTel" class="form-control mb-3" placeholder="Teléfono"><button class="btn btn-km7" onclick="crearClie()">GUARDAR</button></div></div></div>
 <div class="modal fade" id="modProspecto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3">Nuevo Prospecto</h5><input type="text" id="npNombre" class="form-control mb-2" placeholder="Nombre/Lugar"><input type="tel" id="npTel" class="form-control mb-3" placeholder="WhatsApp"><button class="btn btn-km7" onclick="crearPrsp()">AÑADIR A LA LISTA</button></div></div></div>
 <div class="modal fade" id="modGasto" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content p-4 rounded-4 border-0"><h5 class="fw-bold mb-3">Registrar Gasto</h5><input type="number" id="gMonto" class="form-control mb-2" placeholder="Monto"><input type="text" id="gNota" class="form-control mb-3" placeholder="Concepto"><button class="btn btn-danger w-100 py-3" onclick="guardarGasto()">REGISTRAR GASTO</button></div></div></div>
-<div class="modal fade" id="modLogs" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content p-4 rounded-4 border-0"><div class="d-flex justify-content-between align-items-center mb-3"><h5 class="fw-bold m-0">Historial CRM</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div id="contLogs" class="mb-4"></div><label class="form-label-small">Nueva Gestión</label><textarea id="logGest" class="form-control border-0 bg-light mb-3" rows="3" placeholder="Escribí aquí..."></textarea><button class="btn btn-km7" onclick="addLog()">GUARDAR REGISTRO</button></div></div></div>
+
+<div class="modal fade" id="modCrmDet" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content p-4 rounded-4 border-0" style="background:var(--km7-bg);">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold m-0">Perfil del Contacto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      
+      <div class="card-custom p-3 mb-3 shadow-sm">
+          <label class="form-label-small">Nombre / Empresa</label>
+          <input type="text" id="crmDetNombre" class="form-control border-0 bg-light mb-2">
+          <label class="form-label-small">Teléfono / WhatsApp</label>
+          <input type="tel" id="crmDetTel" class="form-control border-0 bg-light mb-2">
+          <label class="form-label-small" id="crmDetExtraLabel">Extra</label>
+          <select id="crmDetExtra" class="form-select border-0 bg-light mb-3"></select>
+          
+          <div class="d-flex gap-2">
+              <button class="btn btn-danger flex-grow-1 py-2" style="font-weight:700; font-size:12px; border-radius:12px" onclick="eliminarCrm()"><i class="bi bi-trash3 me-1"></i> BORRAR</button>
+              <button class="btn btn-success flex-grow-1 py-2" style="font-weight:700; font-size:12px; border-radius:12px; background:var(--km7-gold); border:none;" onclick="guardarCrmEdit()"><i class="bi bi-floppy me-1"></i> GUARDAR</button>
+          </div>
+      </div>
+
+      <div id="crmVentasSec" class="card-custom p-3 mb-3 shadow-sm" style="display:none;">
+          <h6 class="fw-bold mb-2" style="color:var(--km7-coffee)"><i class="bi bi-bag-check"></i> Historial de Ventas</h6>
+          <div id="crmVentasList" style="max-height:120px; overflow-y:auto; font-size:13px;"></div>
+      </div>
+
+      <div class="card-custom p-3 shadow-sm">
+          <h6 class="fw-bold mb-2" style="color:var(--km7-coffee)"><i class="bi bi-journal-text"></i> Logs / Seguimiento</h6>
+          <div id="contLogsCRM" class="mb-3" style="max-height:150px; overflow-y:auto;"></div>
+          <label class="form-label-small">Nueva Gestión</label>
+          <div class="d-flex gap-2">
+              <input type="text" id="logGestCRM" class="form-control border-0 bg-light" placeholder="Escribí aquí...">
+              <button class="btn btn-km7" style="width:auto; padding:8px 15px;" onclick="addLogCRMDet()"><i class="bi bi-send-fill"></i></button>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxq69gkGczhOf683lUZXDpPPAofrcZSOdhFBvijAou44ZGFYadgeIrH_zG_SwlJtBuc/exec";
     
-    let productos = [], clientes = [], carrito = [], histData = [], prospectos = [], curPrspId = "";
+    let productos = [], clientes = [], carrito = [], histData = [], prospectos = [], curPrspId = "", curCrmTipo = "";
     let fEntAct = false, fPagAct = false, editingIdx = -1;
     const modals = { 
         edit: new bootstrap.Modal('#modEditItem'), 
         clie: new bootstrap.Modal('#modCliente'), 
         prsp: new bootstrap.Modal('#modProspecto'), 
         gasto: new bootstrap.Modal('#modGasto'), 
-        logs: new bootstrap.Modal('#modLogs'), 
+        crmDet: new bootstrap.Modal('#modCrmDet'), 
         deuda: new bootstrap.Modal('#modDeuda'),
         detVenta: new bootstrap.Modal('#modDetalleVenta')
     };
@@ -175,9 +227,8 @@
     function shareVenta(id) {
         const v = histData.find(x => x.id === id);
         if(!v) return;
-        // Se añade la nota al mensaje si existe
         const notaStr = v.nota ? `\n📝 *Nota:* ${v.nota}` : '';
-        const msg = `*KM7 COFFEE ROASTERS*\n------------------\n📅 *Fecha:* ${v.fecha}\n👤 *Cliente:* ${v.clienteNombre}\n☕ *Productos:* ${v.productos}${notaStr}\n✅ *TOTAL:* $${v.total}\n------------------\n_Cafe con conciencia_`;
+        const msg = `*KM7 COFFEE ROASTERS*\n------------------\n📅 *Fecha:* ${v.fecha}\n👤 *Cliente:* ${v.clienteNombre}\n☕ *Productos:* ${v.productos}${notaStr}\n✅ *TOTAL:* $${v.total}\n------------------\n_Sistema de Ventas Fleet_`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
@@ -237,12 +288,83 @@
         document.getElementById('contDetVenta').innerHTML = `<div class="mb-2"><small class="text-muted">CLIENTE</small><br><b class="fs-5">${v.clienteNombre}</b></div><div class="mb-2"><small class="text-muted">PRODUCTOS</small><br><span class="text-primary fw-bold">${v.productos}</span></div><div class="d-flex justify-content-between mt-3 align-items-end"><div><span class="status-pill-big ${v.pago==='Pagado'?'pill-pagado':'pill-pendiente'}">${v.pago}</span></div><div class="text-end"><b class="fs-4">$${v.total}</b></div></div>`;
         modals.detVenta.show();
     }
+    
+    // CRM UNIFICADO
     async function loadCRM() {
-        const d = await callAPI('getFormData'); prospectos = d.prospectos;
-        document.getElementById('listaP').innerHTML = prospectos.map(p => `<div class="crm-card"><div class="d-flex justify-content-between mb-2"><div><h6 class="fw-bold m-0">${p[1]}</h6><small class="text-muted">${p[3] || '-'}</small></div><span class="temp-badge temp-${p[7]}">${p[7]}</span></div><div class="d-flex gap-2"><button class="btn btn-sm flex-grow-1 border-0 bg-light fw-bold" style="font-size:11px" onclick="openLogs('${p[0]}')">LOGS</button><button class="btn-action-big btn-ws-big" style="width:36px; height:36px; font-size:15px" onclick="window.open('https://wa.me/${p[3].replace(/\D/g,'')}', '_blank')"><i class="bi bi-whatsapp"></i></button></div></div>`).join('');
+        const d = await callAPI('getFormData'); 
+        clientes = d.clientes; prospectos = d.prospectos;
+        
+        let crmData = [];
+        clientes.forEach(c => crmData.push({ id: c[0], nombre: c[1], info: c[2], tel: c[3], tipo: 'Cliente', orden: c[0] }));
+        prospectos.forEach(p => crmData.push({ id: p[0], nombre: p[1], info: p[7], tel: p[3], tipo: 'Prospecto', orden: p[0] }));
+        crmData.sort((a,b) => b.orden.localeCompare(a.orden));
+
+        document.getElementById('listaP').innerHTML = crmData.map(item => `
+            <div class="hist-card ${item.tipo === 'Cliente' ? 'border-cliente' : 'border-prospecto'}" onclick="abrirCRMDetalle('${item.id}', '${item.tipo}')" style="cursor:pointer">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <b style="font-size:16px; display:block;">${item.nombre}</b>
+                        <small class="text-muted" style="font-size:11px">${item.tel || 'Sin teléfono'}</small>
+                    </div>
+                    <span class="status-pill-big ${item.tipo === 'Cliente' ? 'pill-pagado' : 'pill-pendiente'}">${item.tipo}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <span class="status-pill-big pill-entrega">${item.info || 'N/A'}</span>
+                    <button class="btn-action-big btn-ws-big" style="width:36px; height:36px; font-size:15px" onclick="event.stopPropagation(); window.open('https://wa.me/${(item.tel||'').replace(/\D/g,'')}', '_blank')"><i class="bi bi-whatsapp"></i></button>
+                </div>
+            </div>
+        `).join('');
     }
-    async function openLogs(id) { curPrspId = id; modals.logs.show(); const l = await callAPI('getSeguimientos', null, id); document.getElementById('contLogs').innerHTML = l.map(x => `<div class="log-entry"><small>${x[2]}</small><div style="font-size:13px">${x[4]}</div></div>`).join(''); }
-    async function addLog() { const txt = document.getElementById('logGest').value; if(!txt) return; await callAPI('agregarLogCRM', { idProspecto: curPrspId, gestion: txt }); document.getElementById('logGest').value=""; openLogs(curPrspId); }
+
+    async function abrirCRMDetalle(id, tipo) {
+        curPrspId = id; curCrmTipo = tipo;
+        let obj = tipo === 'Cliente' ? clientes.find(c => c[0] === id) : prospectos.find(p => p[0] === id);
+        
+        document.getElementById('crmDetNombre').value = obj[1];
+        document.getElementById('crmDetTel').value = obj[3];
+        
+        if(tipo === 'Cliente') {
+            document.getElementById('crmDetExtraLabel').innerText = "Categoría";
+            document.getElementById('crmDetExtra').innerHTML = `<option ${obj[2]=='Minorista'?'selected':''}>Minorista</option><option ${obj[2]=='Mayorista'?'selected':''}>Mayorista</option>`;
+            document.getElementById('crmVentasSec').style.display = 'block';
+            if(histData.length === 0) histData = await callAPI('getHistorial');
+            let vtas = histData.filter(v => v.idCliente === id);
+            document.getElementById('crmVentasList').innerHTML = vtas.length ? vtas.map(v => `<div class="d-flex justify-content-between border-bottom py-2"><small>${v.fecha}</small><b>$${v.total}</b></div>`).join('') : '<small class="text-muted">Sin ventas registradas</small>';
+        } else {
+            document.getElementById('crmDetExtraLabel').innerText = "Termómetro";
+            document.getElementById('crmDetExtra').innerHTML = `<option ${obj[7]=='Frío'?'selected':''}>Frío</option><option ${obj[7]=='Tibio'?'selected':''}>Tibio</option><option ${obj[7]=='Caliente'?'selected':''}>Caliente</option>`;
+            document.getElementById('crmVentasSec').style.display = 'none';
+        }
+        
+        modals.crmDet.show();
+        const l = await callAPI('getSeguimientos', null, id); 
+        document.getElementById('contLogsCRM').innerHTML = l.length ? l.map(x => `<div class="log-entry bg-light p-2 rounded mb-2"><small class="text-muted fw-bold">${x[2]}</small><div style="font-size:13px">${x[4]}</div></div>`).join('') : '<small class="text-muted">Sin movimientos</small>';
+    }
+
+    async function guardarCrmEdit() {
+        let n = document.getElementById('crmDetNombre').value; let t = document.getElementById('crmDetTel').value; let e = document.getElementById('crmDetExtra').value;
+        document.getElementById('loader').style.display='flex';
+        await callAPI('editarContacto', {id: curPrspId, tipo: curCrmTipo, nombre: n, tel: t, cat: e, temp: e});
+        modals.crmDet.hide(); await loadCRM(); document.getElementById('loader').style.display='none';
+    }
+
+    async function eliminarCrm() {
+        if(!confirm(`¿Seguro querés eliminar este ${curCrmTipo}? Esto es irreversible.`)) return;
+        document.getElementById('loader').style.display='flex';
+        await callAPI('eliminarContacto', null, curPrspId, curCrmTipo);
+        modals.crmDet.hide(); await loadCRM(); document.getElementById('loader').style.display='none';
+    }
+
+    async function addLogCRMDet() { 
+        const txt = document.getElementById('logGestCRM').value; if(!txt) return; 
+        document.getElementById('loader').style.display='flex';
+        await callAPI('agregarLogCRM', { idProspecto: curPrspId, gestion: txt }); 
+        document.getElementById('logGestCRM').value=""; 
+        const l = await callAPI('getSeguimientos', null, curPrspId); 
+        document.getElementById('contLogsCRM').innerHTML = l.map(x => `<div class="log-entry bg-light p-2 rounded mb-2"><small class="text-muted fw-bold">${x[2]}</small><div style="font-size:13px">${x[4]}</div></div>`).join('');
+        document.getElementById('loader').style.display='none';
+    }
+
     function ver(id, el) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section')); document.getElementById(id).classList.add('active-section'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
     function toggleMedioPago() { document.getElementById('divMedioPago').classList.toggle('hidden', document.getElementById('estadoPago').value !== 'Pagado'); }
     function toggleF(t) { if(t==='entrega') fEntAct=!fEntAct; if(t==='pago') fPagAct=!fPagAct; renderHist(); }
