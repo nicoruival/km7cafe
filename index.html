@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 FleetCoffee Roasters v28.0</title>
+    <title>Km7 Coffee Roasters v28.1</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -52,7 +52,7 @@
 <body>
 
 <header class="app-header">
-    <div style="font-size:9px; font-weight:800; color:#ccc;">v28.0</div>
+    <div style="font-size:9px; font-weight:800; color:#ccc;">v28.1</div>
     <div class="header-logo">KM7 <span style="font-weight:300; color:var(--km7-gold)">CAFÉ</span></div>
     <div class="header-user">NR</div>
 </header>
@@ -241,13 +241,14 @@
     }
 
     async function loadHist() { histData = await callAPI('getHistorial'); renderHist(); }
+    
     function renderHist() {
         const b = document.getElementById('busqHist').value.toLowerCase();
         document.getElementById('contenedorHistorial').innerHTML = histData
             .filter(v => v.clienteNombre.toLowerCase().includes(b) || v.id.toLowerCase().includes(b))
             .filter(v => !fEntAct || v.entrega === 'Pendiente').filter(v => !fPagAct || v.pago === 'Pendiente')
             .map(v => `
-                <div class="hist-card ${v.entrega==='Entregado'?'listo-entrega':'pend-entrega'}">
+                <div class="hist-card ${v.entrega==='Entregado'?'listo-entrega':'pend-entrega'}" onclick="verPopupVenta('${v.id}')" style="cursor:pointer">
                     <div class="d-flex justify-content-between align-items-start">
                         <div><b style="font-size:16px; display:block;">${v.clienteNombre}</b><small class="text-muted" style="font-size:11px">${v.fecha}</small></div>
                         <b style="font-size:18px; color:var(--km7-coffee)">$${v.total}</b>
@@ -258,13 +259,13 @@
                         <span class="status-pill-big ${v.pago==='Pagado'?'pill-pagado':'pill-pendiente'}">${v.pago}</span>
                         <span class="status-pill-big pill-entrega">${v.entrega}</span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center" onclick="event.stopPropagation()">
                         <div class="d-flex gap-2">
-                            <button class="btn-action-big" onclick="updStat('${v.id}','pago','${v.pago}')"><i class="bi bi-cash"></i></button>
-                            <button class="btn-action-big" onclick="updStat('${v.id}','entrega','${v.entrega}')"><i class="bi bi-truck"></i></button>
-                            <button class="btn-action-big btn-ws-big" onclick="shareVenta('${v.id}')"><i class="bi bi-whatsapp"></i></button>
+                            <button class="btn-action-big" onclick="event.stopPropagation(); updStat('${v.id}','pago','${v.pago}')"><i class="bi bi-cash"></i></button>
+                            <button class="btn-action-big" onclick="event.stopPropagation(); updStat('${v.id}','entrega','${v.entrega}')"><i class="bi bi-truck"></i></button>
+                            <button class="btn-action-big btn-ws-big" onclick="event.stopPropagation(); shareVenta('${v.id}')"><i class="bi bi-whatsapp"></i></button>
                         </div>
-                        <button class="btn-action-big btn-delete-big" onclick="delVenta('${v.id}')"><i class="bi bi-trash3"></i></button>
+                        <button class="btn-action-big btn-delete-big" onclick="event.stopPropagation(); delVenta('${v.id}')"><i class="bi bi-trash3"></i></button>
                     </div>
                 </div>
             `).join('');
@@ -279,13 +280,30 @@
             : '<p class="text-center text-muted">No hay deudas pendientes</p>';
         document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `<div class="card-custom py-2 d-flex justify-content-between border-start border-4 ${m.tipo=='Egreso'?'border-danger':'border-success'}" style="cursor:${m.idReferencia?'pointer':'default'}" onclick="${m.idReferencia ? `verPopupVenta('${m.idReferencia}')` : ''}"><div class="d-flex flex-column"><span style="font-size:13px; font-weight:800">${m.tipo.toUpperCase()}: ${m.descripcion}</span><small class="text-muted" style="font-size:10px">${m.fecha} | Pago: ${m.medio}</small>${m.idReferencia ? `<small class="text-primary" style="font-size:9px; font-weight:bold"><i class="bi bi-info-circle"></i> VER DETALLE</small>` : ''}</div><b class="${m.tipo=='Egreso'?'text-danger':'text-success'}">${m.tipo=='Egreso'?'-':''}$${m.monto}</b></div>`).join('');
     }
+    
     async function verPopupVenta(idVenta) {
         document.getElementById('loader').style.display='flex';
         if(histData.length === 0) histData = await callAPI('getHistorial');
         const v = histData.find(x => x.id === idVenta);
         document.getElementById('loader').style.display='none';
-        if(!v) return alert("No se encontró");
-        document.getElementById('contDetVenta').innerHTML = `<div class="mb-2"><small class="text-muted">CLIENTE</small><br><b class="fs-5">${v.clienteNombre}</b></div><div class="mb-2"><small class="text-muted">PRODUCTOS</small><br><span class="text-primary fw-bold">${v.productos}</span></div><div class="d-flex justify-content-between mt-3 align-items-end"><div><span class="status-pill-big ${v.pago==='Pagado'?'pill-pagado':'pill-pendiente'}">${v.pago}</span></div><div class="text-end"><b class="fs-4">$${v.total}</b></div></div>`;
+        if(!v) return alert("No se encontró la venta");
+        
+        document.getElementById('contDetVenta').innerHTML = `
+            <div class="mb-3"><small class="text-muted" style="font-size:10px; font-weight:bold;">ID VENTA</small><br><span style="font-size:12px">${v.id}</span></div>
+            <div class="mb-3"><small class="text-muted" style="font-size:10px; font-weight:bold;">FECHA</small><br><b>${v.fecha}</b></div>
+            <div class="mb-3"><small class="text-muted" style="font-size:10px; font-weight:bold;">CLIENTE</small><br><b class="fs-5">${v.clienteNombre}</b></div>
+            <div class="mb-3"><small class="text-muted" style="font-size:10px; font-weight:bold;">PRODUCTOS</small><br><span class="text-primary fw-bold">${v.productos}</span></div>
+            ${v.nota ? `<div class="mb-3"><small class="text-muted" style="font-size:10px; font-weight:bold;">NOTA</small><br><i>${v.nota}</i></div>` : ''}
+            <div class="d-flex justify-content-between mt-4 align-items-end p-3 bg-light rounded-4 border">
+                <div>
+                    <span class="status-pill-big ${v.pago==='Pagado'?'pill-pagado':'pill-pendiente'} d-inline-block mb-2">${v.pago}</span><br>
+                    <span class="status-pill-big pill-entrega d-inline-block">${v.entrega}</span>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted d-block" style="font-size:10px; font-weight:bold;">TOTAL</small>
+                    <b class="fs-3" style="color:var(--km7-coffee)">$${v.total}</b>
+                </div>
+            </div>`;
         modals.detVenta.show();
     }
     
