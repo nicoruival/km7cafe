@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Km7 Coffee Roasters v28.1</title>
+    <title>Km7 Coffee Roasters v28.7</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -47,12 +47,31 @@
         .form-label-small { font-size: 10px; font-weight: 800; color: var(--km7-gold); text-transform: uppercase; margin-bottom: 6px; }
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--km7-bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
         .hidden { display: none; }
+        .btn-filter { width: 44px; height: 44px; border-radius: 12px; border: none; background: white; color: var(--km7-coffee); font-size: 18px; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .btn-filter.active { background: var(--km7-gold) !important; color: white !important; transform: scale(1.15); box-shadow: 0 5px 15px rgba(188, 149, 92, 0.4); }
+        /* NEW CHIP STYLES */
+        .chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .chip { border-radius: 12px; padding: 10px 15px; font-size: 13px; font-weight: 600; border: 1px solid #ddd; background: white; color: var(--km7-coffee); transition: 0.2s; flex: 1; text-align: center; min-width: 80px; }
+        .chip.active { background: var(--km7-coffee); color: white; border-color: var(--km7-coffee); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .chip-molido { min-width: 70px; padding: 8px 10px; font-size: 12px; }
+        .search-results { position: absolute; width: 100%; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ddd; border-top: 0; z-index: 1000; border-radius: 0 0 12px 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .search-results div { padding: 10px 15px; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .search-results div:hover { background: #f0f7ff; color: #007bff; }
+        .search-container { position: relative; }
+        
+        /* PRODUCCION MODULE */
+        .prod-card { background: var(--km7-card); border-radius: 18px; padding: 18px; margin-bottom: 15px; border: none; box-shadow: 0 4px 15px rgba(44, 27, 14, 0.06); border-left: 6px solid var(--km7-gold); position: relative; }
+        .prod-card-warning { border-left-color: #f39c12; background: #fffdf5; }
+        .prod-card-danger { border-left-color: #e74c3c; background: #fff5f5; }
+        .stock-badge { padding: 4px 8px; border-radius: 8px; font-size: 11px; font-weight: 800; }
+        .badge-low { background: #ffeaa7; color: #d35400; }
+        .badge-none { background: #fab1a0; color: #c0392b; }
     </style>
 </head>
 <body>
 
 <header class="app-header">
-    <div style="font-size:9px; font-weight:800; color:#ccc;">v28.2</div>
+    <div style="font-size:9px; font-weight:800; color:#ccc;">v28.7</div>
     <div class="header-logo">KM7 <span style="font-weight:300; color:var(--km7-gold)">CAFÉ</span></div>
     <div class="header-user" id="btnConfigUser" onclick="modals.user.show()" style="cursor: pointer;" title="Configurar Usuario">--</div>
 </header>
@@ -67,9 +86,52 @@
         <h5 class="fw-bold mb-3">Nueva Orden</h5>
         <div class="card-custom">
             <div class="d-flex justify-content-between align-items-center mb-1"><label class="form-label-small">Cliente</label><button class="btn btn-link p-0 text-decoration-none fw-bold" style="font-size: 10px; color: var(--km7-coffee);" onclick="modals.clie.show()">+ NUEVO CLIENTE</button></div>
-            <select id="clienteSel" class="form-select border-0 bg-light mb-3"></select>
-            <label class="form-label-small">Producto</label>
-            <div class="d-flex gap-2 mb-3"><select id="prodSel" class="form-select border-0 bg-light"></select><input type="number" id="cant" class="form-control w-25 border-0 bg-light text-center" value="1"><button class="btn btn-dark" onclick="addItem()"><i class="bi bi-plus-lg"></i></button></div>
+            <div class="search-container mb-3">
+                <input type="text" id="clienteSearch" class="form-control rounded-4 border-0 bg-light p-3" placeholder="🔍 Buscar cliente..." onkeyup="filterClientes()" onfocus="showClientes()" autocomplete="off">
+                <div id="clienteResults" class="search-results hidden"></div>
+            </div>
+            <div class="d-none"><select id="clienteSel"></select></div>
+            
+            <label class="form-label-small">Origen</label>
+            <div class="chip-group" id="group-origen">
+                <div class="chip" onclick="selectChip('origen', 'Colombia')">Colombia</div>
+                <div class="chip" onclick="selectChip('origen', 'Brasil')">Brasil</div>
+                <div class="chip" onclick="selectChip('origen', 'Rwanda')">Rwanda</div>
+                <div class="chip" onclick="selectChip('origen', 'Blend km7')">Blend</div>
+            </div>
+
+            <label class="form-label-small">Molienda</label>
+            <div class="chip-group" id="group-formato">
+                <div class="chip" onclick="selectChip('formato', 'En Grano')">Grano</div>
+                <div class="chip" onclick="selectChip('formato', 'Molido')">Molido</div>
+            </div>
+
+            <div id="sec-molienda" class="hidden">
+                <label class="form-label-small">Tipo de Molienda</label>
+                <div class="chip-group" id="group-tipo">
+                    <div class="chip chip-molido" onclick="selectChip('tipo', 'Espresso')">Espresso</div>
+                    <div class="chip chip-molido" onclick="selectChip('tipo', 'Moka')">Moka</div>
+                    <div class="chip chip-molido" onclick="selectChip('tipo', 'Filtro')">Filtro</div>
+                    <div class="chip chip-molido" onclick="selectChip('tipo', 'Prensa Francesa')">Prensa</div>
+                </div>
+            </div>
+
+            <label class="form-label-small">Peso</label>
+            <div class="chip-group" id="group-peso">
+                <div class="chip active" onclick="selectChip('peso', '250gr')">250g</div>
+                <div class="chip" onclick="selectChip('peso', '500gr')">500g</div>
+                <div class="chip" onclick="selectChip('peso', '1kg')">1kg</div>
+            </div>
+
+            <label class="form-label-small">Cantidad</label>
+            <div class="d-flex gap-2 mb-3">
+                <div class="d-none"><select id="prodSel" class="form-select border-0 bg-light"></select></div>
+                <div class="flex-grow-1 p-3 bg-light rounded-4 d-flex align-items-center justify-content-between" id="selected-prod-display">
+                    <span class="fw-bold opacity-50" style="font-size:14px">Seleccioná origen...</span>
+                </div>
+                <input type="number" id="cant" class="form-control w-25 border-0 bg-light text-center fw-bold" value="1">
+                <button class="btn btn-dark px-3" onclick="addItem()"><i class="bi bi-plus-lg"></i></button>
+            </div>
             <div class="row g-2">
                 <div class="col-6"><label class="form-label-small">Entrega</label><select id="estadoEntrega" class="form-select border-0 bg-light"><option>Pendiente</option><option>Entregado</option></select></div>
                 <div class="col-6"><label class="form-label-small">Pago</label><select id="estadoPago" class="form-select border-0 bg-light" onchange="toggleMedioPago()"><option>Pendiente</option><option>Pagado</option></select></div>
@@ -84,18 +146,46 @@
 
     <div id="sec-historial" class="view-section">
         <h5 class="fw-bold mb-3">Ventas</h5>
-        <div class="d-flex gap-2 mb-3"><input type="text" id="busqHist" class="form-control border-0 bg-white shadow-sm" placeholder="Buscar..." oninput="renderHist()"><button id="fEnt" class="btn btn-filter shadow-sm" onclick="toggleF('entrega')"><i class="bi bi-truck"></i></button><button id="fPag" class="btn btn-filter shadow-sm" onclick="toggleF('pago')"><i class="bi bi-cash-stack"></i></button></div>
+        <div class="d-flex gap-2 mb-3"><input type="text" id="busqHist" class="form-control border-0 bg-white shadow-sm" placeholder="Buscar..." oninput="renderHist()"><button id="fEnt" class="btn btn-filter shadow-sm" onclick="toggleF('entrega')"><i class="bi bi-truck"></i></button><button id="fPag" class="btn btn-filter shadow-sm" onclick="toggleF('pago')"><i class="bi bi-cash-stack"></i></button><button id="fAdv" class="btn btn-filter shadow-sm" onclick="toggleAdvancedFilters()"><i class="bi bi-funnel"></i></button></div>
+        
+        <div id="panelFiltrosAv" class="card-custom mb-3 p-3" style="display:none; background:#f4f1eb; border:1px solid #e0d8c3;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold m-0" style="color:var(--km7-coffee)"><i class="bi bi-funnel-fill me-1"></i> Filtros Avanzados</h6>
+                <button type="button" class="btn-close" style="font-size: 10px;" onclick="toggleAdvancedFilters()"></button>
+            </div>
+            <div class="row g-2">
+                <div class="col-6">
+                    <label class="form-label-small">Desde</label>
+                    <input type="date" id="fDesde" class="form-control border-0 bg-white shadow-sm" style="font-size:13px" onchange="renderHist()">
+                </div>
+                <div class="col-6">
+                    <label class="form-label-small">Hasta</label>
+                    <input type="date" id="fHasta" class="form-control border-0 bg-white shadow-sm" style="font-size:13px" onchange="renderHist()">
+                </div>
+                <div class="col-12 mt-2">
+                    <label class="form-label-small">Cliente</label>
+                    <select id="fCliente" class="form-select border-0 bg-white shadow-sm" style="font-size:13px" onchange="renderHist()">
+                        <option value="">Todos los clientes</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-3 text-end">
+                <button class="btn btn-sm btn-outline-danger fw-bold px-3 py-2 border-2" style="border-radius:12px" onclick="clearFilters()">LIMPIAR</button>
+            </div>
+        </div>
+
         <div id="contenedorHistorial"></div>
     </div>
 
-    <div id="sec-crm" class="view-section">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div id="sec-crm" class="view-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold m-0">Directorio</h5>
             <div class="d-flex gap-2">
                 <button class="btn btn-dark btn-sm rounded-pill px-3 py-1" style="font-size:11px; font-weight:800; background:var(--km7-coffee)" onclick="modals.clie.show()">+ CLIENTE</button>
                 <button class="btn btn-dark btn-sm rounded-pill px-3 py-1" style="font-size:11px; font-weight:800; background:var(--km7-gold); border:none;" onclick="modals.prsp.show()">+ PROSPECTO</button>
             </div>
         </div>
+        <input type="text" id="crmSearch" class="form-control rounded-4 border-0 bg-light p-3 mb-3" placeholder="🔍 Buscar cliente o prospecto..." oninput="filterCRM()">
         <div id="listaP"></div>
     </div>
 
@@ -104,11 +194,20 @@
         <button class="btn btn-outline-danger w-100 mb-4 fw-bold border-2 py-3" onclick="modals.gasto.show()"><i class="bi bi-dash-circle me-2"></i>REGISTRAR GASTO</button>
         <div id="listaMovs"></div>
     </div>
+
+    <div id="sec-produccion" class="view-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0">Producción Necesaria</h5>
+            <span class="badge bg-dark rounded-pill" id="countProduccion" style="font-size: 12px; padding: 6px 10px;">0</span>
+        </div>
+        <div id="listaProduccion"></div>
+    </div>
 </div>
 
 <nav class="nav-bottom">
     <button class="nav-item active" onclick="ver('sec-venta', this)"><i class="bi bi-cup-hot-fill"></i><span>VENTA</span></button>
     <button class="nav-item" onclick="ver('sec-historial', this); loadHist();"><i class="bi bi-receipt-cutoff"></i><span>VENTAS</span></button>
+    <button class="nav-item" onclick="ver('sec-produccion', this); loadProduccion();"><i class="bi bi-hammer"></i><span>PROD.</span></button>
     <button class="nav-item" onclick="ver('sec-crm', this); loadCRM();"><i class="bi bi-person-lines-fill"></i><span>CRM</span></button>
     <button class="nav-item" onclick="ver('sec-caja', this); loadCaja();"><i class="bi bi-wallet2"></i><span>CAJA</span></button>
 </nav>
@@ -166,7 +265,13 @@
             <h5 class="fw-bold mb-3">Identificación de Dispositivo</h5>
             <p class="text-muted" style="font-size: 13px;">Por favor ingresá tu nombre para registrar las ventas y movimientos desde este dispositivo.</p>
             <input type="text" id="uNombre" class="form-control mb-3" placeholder="Tu Nombre (Ej: Nico)">
-            <button class="btn btn-km7" onclick="saveDeviceUser()">GUARDAR</button>
+            <button class="btn btn-km7 mb-3" onclick="saveDeviceUser()">GUARDAR</button>
+            <hr>
+            <h6 class="fw-bold mb-2" style="font-size:12px">HERRAMIENTAS DE SISTEMA</h6>
+            <button class="btn btn-outline-dark btn-sm w-100 py-2 fw-bold" onclick="syncProducts()">
+                <i class="bi bi-arrow-repeat me-1"></i> ACTUALIZAR PLANILLA DE PRODUCTOS
+            </button>
+            <div id="syncStatus" class="mt-2 text-center" style="font-size:11px"></div>
         </div>
     </div>
 </div>
@@ -178,6 +283,7 @@
     let productos = [], clientes = [], carrito = [], histData = [], prospectos = [], curPrspId = "", curCrmTipo = "";
     let fEntAct = false, fPagAct = false, editingIdx = -1;
     let deviceUser = "";
+    let selVenta = { origen: '', formato: '', tipo: '', peso: '250gr', id: null, nombre: '' };
     
     const modals = { 
         edit: new bootstrap.Modal('#modEditItem'), 
@@ -213,8 +319,9 @@
         
         const d = await callAPI('getFormData');
         productos = d.productos; clientes = d.clientes; prospectos = d.prospectos;
-        document.getElementById('clienteSel').innerHTML = clientes.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
+        updateComboClientes();
         document.getElementById('prodSel').innerHTML = productos.map(p => `<option value="${p[0]}">${p[1]}</option>`).join('');
+        document.getElementById('fCliente').innerHTML = '<option value="">Todos los clientes</option>' + clientes.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
         document.getElementById('loader').style.display = 'none';
         
         if (!storedUser) {
@@ -236,12 +343,115 @@
         modals.user.hide();
     }
 
+    function selectChip(group, val) {
+        // Limpiar grupo
+        document.querySelectorAll(`#group-${group} .chip`).forEach(c => c.classList.remove('active'));
+        // Buscar y activar el clickeado
+        const chips = document.querySelectorAll(`#group-${group} .chip`);
+        chips.forEach(c => { if(c.innerText === val || (group==='formato' && c.innerText==='Grano' && val==='En Grano') || (group==='origen' && c.innerText==='Blend' && val==='Blend km7') || (group==='tipo' && c.innerText==='Prensa' && val==='Prensa Francesa') || (group==='peso' && c.innerText==='250g' && val==='250gr') || (group==='peso' && c.innerText==='500g' && val==='500gr') || (group==='peso' && c.innerText==='1kg' && val==='1kg')) c.classList.add('active'); });
+
+        selVenta[group] = val;
+
+        if (group === 'formato') {
+            if (val === 'Molido') {
+                document.getElementById('sec-molienda').classList.remove('hidden');
+            } else {
+                document.getElementById('sec-molienda').classList.add('hidden');
+                selVenta.tipo = '';
+                document.querySelectorAll(`#group-molienda .chip`).forEach(c => c.classList.remove('active'));
+            }
+        }
+
+        updateSelectedProduct();
+    }
+
+    function updateSelectedProduct() {
+        if (!selVenta.origen || !selVenta.formato || (selVenta.formato === 'Molido' && !selVenta.tipo) || !selVenta.peso) {
+            document.getElementById('selected-prod-display').innerHTML = '<span class="fw-bold opacity-50" style="font-size:14px">Incompleto...</span>';
+            selVenta.id = null;
+            return;
+        }
+
+        // Determinar nombre del producto: "Origen - Formato [Tipo] Peso"
+        let searchName = '';
+        if (selVenta.formato === 'En Grano') {
+            searchName = `${selVenta.origen} - En Grano ${selVenta.peso}`;
+        } else {
+            searchName = `${selVenta.origen} - Molido ${selVenta.tipo} ${selVenta.peso}`;
+        }
+
+        // Búsqueda más flexible
+        const match = productos.find(p => p[1].toLowerCase().includes(searchName.toLowerCase()));
+
+        if (match) {
+            selVenta.id = match[0];
+            selVenta.nombre = match[1];
+            document.getElementById('selected-prod-display').innerHTML = `<span class="fw-bold" style="color:var(--km7-coffee); font-size:14px">${match[1]}</span>`;
+        } else {
+            selVenta.id = null;
+            document.getElementById('selected-prod-display').innerHTML = `<span class="text-danger fw-bold" style="font-size:12px">Producto no encontrado</span>`;
+            console.log("No match for:", searchName);
+        }
+    }
+
     function addItem() {
-        const prod = productos.find(p => p[0] == document.getElementById('prodSel').value);
+        if (!selVenta.id) return alert("Por favor seleccioná un producto válido.");
+        
+        const prod = productos.find(p => p[0] == selVenta.id);
         const clie = clientes.find(c => c[0] == document.getElementById('clienteSel').value);
         const p = parseFloat(clie[2] === "Mayorista" ? prod[6] : prod[5]);
-        carrito.push({ idProd: prod[0], nombre: prod[1], cant: parseFloat(document.getElementById('cant').value), precio: p, subtotal: p * parseFloat(document.getElementById('cant').value) });
+        
+        carrito.push({ 
+            idProd: prod[0], 
+            nombre: prod[1], 
+            cant: parseFloat(document.getElementById('cant').value), 
+            precio: p, 
+            subtotal: p * parseFloat(document.getElementById('cant').value) 
+        });
+        
         renderCar();
+        
+        // Reset selection for next item? Maybe just quantity?
+        document.getElementById('cant').value = 1;
+    }
+
+    async function syncProducts() {
+        if (!confirm("Esto sincronizará todas las variantes (Origen/Muestra/Molienda) con tu planilla de Google Sheets. ¿Continuar?")) return;
+        
+        const status = document.getElementById('syncStatus');
+        status.innerHTML = '<span class="text-muted">Procesando...</span>';
+        
+        const origins = ['Colombia', 'Brasil', 'Rwanda', 'Blend km7'];
+        const formatOptions = ['En Grano', 'Molido'];
+        const grindOptions = ['Espresso', 'Moka', 'Filtro', 'Prensa Francesa'];
+        const pesoOptions = ['250gr', '500gr', '1kg'];
+        
+        let allProds = [];
+        origins.forEach(ori => {
+            formatOptions.forEach(form => {
+                pesoOptions.forEach(peso => {
+                    if (form === 'En Grano') {
+                        allProds.push(`${ori} - En Grano ${peso}`);
+                    } else {
+                        grindOptions.forEach(grind => {
+                            allProds.push(`${ori} - Molido ${grind} ${peso}`);
+                        });
+                    }
+                });
+            });
+        });
+
+        try {
+            const res = await callAPI('syncProducts', { items: allProds });
+            if (res.status === 'success') {
+                status.innerHTML = `<span class="text-success fw-bold">¡Listo! ${res.added} nuevos, ${res.total} total.</span>`;
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                status.innerHTML = '<span class="text-danger">Error en la sincronización</span>';
+            }
+        } catch (e) {
+            status.innerHTML = '<span class="text-danger">Error de conexión</span>';
+        }
     }
     
     function renderCar() {
@@ -283,13 +493,41 @@
     
     function renderHist() {
         const b = document.getElementById('busqHist').value.toLowerCase();
+        const fd = document.getElementById('fDesde').value;
+        const fh = document.getElementById('fHasta').value;
+        const fc = document.getElementById('fCliente').value;
+        
+        function parseDateForCompare(dStr) {
+            if(!dStr) return null;
+            const parts = dStr.split(' ')[0].split('/');
+            if(parts.length === 3) return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+            return null;
+        }
+
         document.getElementById('contenedorHistorial').innerHTML = histData
             .filter(v => v.clienteNombre.toLowerCase().includes(b) || v.id.toLowerCase().includes(b))
             .filter(v => !fEntAct || v.entrega === 'Pendiente').filter(v => !fPagAct || v.pago === 'Pendiente')
+            .filter(v => {
+                if(fc && v.idCliente !== fc) return false;
+                if(fd || fh) {
+                    const vDate = parseDateForCompare(v.fecha);
+                    if(vDate) {
+                        if(fd && vDate < fd) return false;
+                        if(fh && vDate > fh) return false;
+                    }
+                }
+                return true;
+            })
             .map(v => `
                 <div class="hist-card ${v.entrega==='Entregado'?'listo-entrega':'pend-entrega'}" onclick="verPopupVenta('${v.id}')" style="cursor:pointer">
                     <div class="d-flex justify-content-between align-items-start">
-                        <div><b style="font-size:16px; display:block;">${v.clienteNombre}</b><small class="text-muted" style="font-size:11px">${v.fecha}</small></div>
+                        <div>
+                            <b style="font-size:16px; display:block;">${v.clienteNombre}</b>
+                            <div class="d-flex align-items-center gap-1">
+                                <small class="text-muted" style="font-size:11px">${v.fecha}</small>
+                                ${v.usuario ? `<span style="font-size:9px; background:#e9ecef; color:#6c757d; padding:1px 6px; border-radius:6px; font-weight:700;"><i class="bi bi-person-fill"></i> ${v.usuario.toUpperCase()}</span>` : ''}
+                            </div>
+                        </div>
                         <b style="font-size:18px; color:var(--km7-coffee)">$${v.total}</b>
                     </div>
                     <div class="prod-info"><strong>Pedido:</strong> ${v.productos}</div>
@@ -317,19 +555,37 @@
         document.getElementById('contDeudas').innerHTML = d.detallesPendientes.length > 0 
             ? d.detallesPendientes.map(p => `<div class="d-flex justify-content-between border-bottom py-2"><span style="font-size:13px">${p.cliente}</span><b style="font-size:13px">$${p.monto}</b></div>`).join('')
             : '<p class="text-center text-muted">No hay deudas pendientes</p>';
-        document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `<div class="card-custom py-2 d-flex justify-content-between border-start border-4 ${m.tipo=='Egreso'?'border-danger':'border-success'}" style="cursor:${m.idReferencia?'pointer':'default'}" onclick="${m.idReferencia ? `verPopupVenta('${m.idReferencia}')` : ''}"><div class="d-flex flex-column"><span style="font-size:13px; font-weight:800">${m.tipo.toUpperCase()}: ${m.descripcion}</span><small class="text-muted" style="font-size:10px">${m.fecha} | Pago: ${m.medio}</small>${m.idReferencia ? `<small class="text-primary" style="font-size:9px; font-weight:bold"><i class="bi bi-info-circle"></i> VER DETALLE</small>` : ''}</div><b class="${m.tipo=='Egreso'?'text-danger':'text-success'}">${m.tipo=='Egreso'?'-':''}$${m.monto}</b></div>`).join('');
+        document.getElementById('listaMovs').innerHTML = d.movimientos.map(m => `
+            <div class="card-custom py-2 d-flex justify-content-between border-start border-4 ${m.tipo=='Egreso'?'border-danger':'border-success'}" style="cursor:${m.idReferencia?'pointer':'default'}" onclick="${m.idReferencia ? `verPopupVenta('${m.idReferencia}')` : ''}">
+                <div class="d-flex flex-column">
+                    <span style="font-size:13px; font-weight:800">${m.tipo.toUpperCase()}: ${m.descripcion}</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <small class="text-muted" style="font-size:10px">${m.fecha} | Pago: ${m.medio}</small>
+                        ${m.usuario ? `<span style="font-size:9px; color:var(--km7-gold); font-weight:700;"><i class="bi bi-person me-1"></i>${m.usuario}</span>` : ''}
+                    </div>
+                    ${m.idReferencia ? `<small class="text-primary" style="font-size:9px; font-weight:bold"><i class="bi bi-info-circle"></i> VER DETALLE</small>` : ''}
+                </div>
+                <b class="${m.tipo=='Egreso'?'text-danger':'text-success'}">${m.tipo=='Egreso'?'-':''}$${m.monto}</b>
+            </div>`).join('');
     }
     
     async function verPopupVenta(idVenta) {
         document.getElementById('loader').style.display='flex';
         if(histData.length === 0) histData = await callAPI('getHistorial');
-        const v = histData.find(x => x.id === idVenta);
+        // Búsqueda extra robusta: trim y convertir a String para ignorar tipos y espacios
+        const v = histData.find(x => String(x.id).trim() == String(idVenta).trim());
         document.getElementById('loader').style.display='none';
-        if(!v) return alert("No se encontró la venta");
+        if(!v) {
+            console.error("No se encontró la venta. Buscando ID:", idVenta, "en:", histData.map(x=>x.id));
+            return alert("No se encontró la venta. Verifica que esté en el historial.");
+        }
         
         document.getElementById('contDetVenta').innerHTML = `
             <div class="mb-3"><small class="text-muted" style="font-size:10px; font-weight:bold;">ID VENTA</small><br><span style="font-size:12px">${v.id}</span></div>
-            <div class="mb-3"><small class="text-muted" style="font-size:10px; font-weight:bold;">FECHA</small><br><b>${v.fecha}</b></div>
+            <div class="mb-3 d-flex justify-content-between">
+                <div><small class="text-muted" style="font-size:10px; font-weight:bold;">FECHA</small><br><b>${v.fecha}</b></div>
+                ${v.usuario ? `<div class="text-end"><small class="text-muted" style="font-size:10px; font-weight:bold;">USUARIO</small><br><span class="badge bg-secondary" style="font-size:11px">${v.usuario}</span></div>` : ''}
+            </div>
             <div class="mb-3"><small class="text-muted" style="font-size:10px; font-weight:bold;">CLIENTE</small><br><b class="fs-5">${v.clienteNombre}</b></div>
             <div class="mb-3"><small class="text-muted" style="font-size:10px; font-weight:bold;">PRODUCTOS</small><br><span class="text-primary fw-bold">${v.productos}</span></div>
             ${v.nota ? `<div class="mb-3"><small class="text-muted" style="font-size:10px; font-weight:bold;">NOTA</small><br><i>${v.nota}</i></div>` : ''}
@@ -347,16 +603,53 @@
     }
     
     // CRM UNIFICADO
+    window._crmData = [];
+
     async function loadCRM() {
         const d = await callAPI('getFormData'); 
         clientes = d.clientes; prospectos = d.prospectos;
         
-        let crmData = [];
-        clientes.forEach(c => crmData.push({ id: c[0], nombre: c[1], info: c[2], tel: c[3], tipo: 'Cliente', orden: c[0] }));
-        prospectos.forEach(p => crmData.push({ id: p[0], nombre: p[1], info: p[7], tel: p[3], tipo: 'Prospecto', orden: p[0] }));
-        crmData.sort((a,b) => b.orden.localeCompare(a.orden));
+        window._crmData = [];
+        clientes.forEach(c => window._crmData.push({ id: c[0], nombre: c[1], info: c[2], tel: c[3], tipo: 'Cliente', orden: String(c[0]) }));
+        prospectos.forEach(p => window._crmData.push({ id: p[0], nombre: p[1], info: p[7], tel: p[3], tipo: 'Prospecto', orden: String(p[0]) }));
+        window._crmData.sort((a,b) => b.orden.localeCompare(a.orden));
+        
+        renderCRM(window._crmData);
+    }
 
-        document.getElementById('listaP').innerHTML = crmData.map(item => `
+    window.filterCRM = function() {
+        try {
+            const q = (document.getElementById('crmSearch').value || "").toLowerCase().trim();
+            console.log("Buscando en CRM:", q);
+            if (!window._crmData) return;
+            
+            const filtered = window._crmData.filter(item => {
+                try {
+                    if (!item) return false;
+                    const nombre = String(item.nombre || "").toLowerCase();
+                    const tel = String(item.tel || "").toLowerCase();
+                    const info = String(item.info || "").toLowerCase();
+                    return nombre.includes(q) || tel.includes(q) || info.includes(q);
+                } catch (e) {
+                    console.error("Error filtrando item:", item, e);
+                    return false;
+                }
+            });
+            
+            console.log("Resultados filtrados:", filtered.length);
+            renderCRM(filtered);
+        } catch (err) {
+            console.error("Error global en filterCRM:", err);
+        }
+    };
+
+    function renderCRM(data) {
+        const cont = document.getElementById('listaP');
+        if (data.length === 0) {
+            cont.innerHTML = '<div class="text-center p-5 text-muted"><i class="bi bi-search fs-1 d-block mb-3"></i>No se encontraron resultados</div>';
+            return;
+        }
+        cont.innerHTML = data.map(item => `
             <div class="hist-card ${item.tipo === 'Cliente' ? 'border-cliente' : 'border-prospecto'}" onclick="abrirCRMDetalle('${item.id}', '${item.tipo}')" style="cursor:pointer">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <div>
@@ -367,15 +660,18 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-3">
                     <span class="status-pill-big pill-entrega">${item.info || 'N/A'}</span>
-                    <button class="btn-action-big btn-ws-big" style="width:36px; height:36px; font-size:15px" onclick="event.stopPropagation(); window.open('https://wa.me/${(item.tel||'').replace(/\D/g,'')}', '_blank')"><i class="bi bi-whatsapp"></i></button>
+                    <button class="btn-action-big btn-ws-big" style="width:36px; height:36px; font-size:15px" onclick="event.stopPropagation(); window.open(getWaLink('${item.tel||''}'), '_blank')"><i class="bi bi-whatsapp"></i></button>
                 </div>
             </div>
         `).join('');
     }
+    function getWaLink(tel) { return 'https://wa.me/' + (tel || '').replace(/\D/g, ''); }
 
     async function abrirCRMDetalle(id, tipo) {
         curPrspId = id; curCrmTipo = tipo;
-        let obj = tipo === 'Cliente' ? clientes.find(c => c[0] === id) : prospectos.find(p => p[0] === id);
+        // Usar == para manejar comparación flexible entre números y strings
+        let obj = tipo === 'Cliente' ? clientes.find(c => c[0] == id) : prospectos.find(p => p[0] == id);
+        if (!obj) return alert('No se encontró el contacto.');
         
         document.getElementById('crmDetNombre').value = obj[1];
         document.getElementById('crmDetTel').value = obj[3];
@@ -422,13 +718,137 @@
         document.getElementById('loader').style.display='none';
     }
 
+    async function loadProduccion() {
+        document.getElementById('loader').style.display='flex';
+        const d = await callAPI('getFormData');
+        productos = d.productos;
+        
+        // 0:ID, 1:Nombre, 2:Cat, 3:StockActual, 4:StockMinimo, 5:P.Min, 6:P.May, 7:Unidad
+        const aProducir = productos.filter(p => {
+            const stockActual = parseFloat(String(p[3]).replace(',', '.') || 0);
+            let stockMinimo = parseFloat(String(p[4]).replace(',', '.'));
+            if (isNaN(stockMinimo)) stockMinimo = 2; 
+            return stockActual < stockMinimo;
+        });
+
+        document.getElementById('countProduccion').innerText = aProducir.length;
+        
+        const cont = document.getElementById('listaProduccion');
+        if (aProducir.length === 0) {
+            cont.innerHTML = '<div class="text-center p-5 text-muted"><i class="bi bi-check2-circle fs-1 d-block mb-3 text-success"></i>¡Stock completo!<br>No hay productos pendientes.</div>';
+        } else {
+            cont.innerHTML = aProducir.map(p => {
+                const stockActual = parseFloat(String(p[3]).replace(',', '.') || 0);
+                let stockMinimo = parseFloat(String(p[4]).replace(',', '.'));
+                if (isNaN(stockMinimo)) stockMinimo = 2;
+                const unidad = p[7] || 'Unid';
+                const faltante = Math.max(0, stockMinimo - stockActual);
+                
+                return `<div class="prod-card ${stockActual===0 ? 'prod-card-danger' : 'prod-card-warning'}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <b style="font-size:16px; display:block;">${p[1]}</b>
+                            <div class="mt-2">
+                                <span class="stock-badge ${stockActual===0 ? 'badge-none' : 'badge-low'}">
+                                    STOCK: ${stockActual} ${unidad} / MIN: ${stockMinimo}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block" style="font-size:10px; font-weight:bold;">FALTAN</small>
+                            <b class="fs-4" style="color:var(--km7-coffee)">${faltante}</b>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <button class="btn btn-km7 py-2 px-3 w-auto" style="font-size:12px;" onclick="actualizarProduccion('${p[0]}', 1)">
+                            <i class="bi bi-check-circle-fill me-1"></i> FABRIQUÉ 1
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        document.getElementById('loader').style.display = 'none';
+    }
+
+    async function actualizarProduccion(id, cant) {
+        document.getElementById('loader').style.display='flex';
+        const res = await callAPI('actualizarStockProduccion', null, id, null, cant);
+        if(res.status === 'success') {
+            await loadProduccion();
+        } else {
+            alert("Error: " + res.message);
+            document.getElementById('loader').style.display='none';
+        }
+    }
+
     function ver(id, el) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-section')); document.getElementById(id).classList.add('active-section'); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
     function toggleMedioPago() { document.getElementById('divMedioPago').classList.toggle('hidden', document.getElementById('estadoPago').value !== 'Pagado'); }
-    function toggleF(t) { if(t==='entrega') fEntAct=!fEntAct; if(t==='pago') fPagAct=!fPagAct; renderHist(); }
+    
+    function toggleAdvancedFilters() {
+        const p = document.getElementById('panelFiltrosAv');
+        const btn = document.getElementById('fAdv');
+        if (p.style.display === 'none') {
+            p.style.display = 'block';
+            btn.classList.add('active');
+        } else {
+            p.style.display = 'none';
+            btn.classList.remove('active');
+        }
+    }
+
+    function clearFilters() {
+        document.getElementById('fDesde').value = '';
+        document.getElementById('fHasta').value = '';
+        document.getElementById('fCliente').value = '';
+        document.getElementById('busqHist').value = '';
+        renderHist();
+    }
+    
+    function toggleF(t) { 
+        if(t==='entrega') {
+            fEntAct=!fEntAct; 
+            document.getElementById('fEnt').classList.toggle('active', fEntAct);
+        }
+        if(t==='pago') {
+            fPagAct=!fPagAct;
+            document.getElementById('fPag').classList.toggle('active', fPagAct);
+        }
+        renderHist(); 
+    }
     async function updStat(id, t, v) { const nv = (t==='pago') ? (v==='Pagado'?'Pendiente':'Pagado') : (v==='Entregado'?'Pendiente':'Entregado'); document.getElementById('loader').style.display='flex'; await callAPI('updateStatusVenta', null, id, t, nv); await loadHist(); document.getElementById('loader').style.display='none'; }
     async function crearClie() { await callAPI('crearCliente', { nombre: document.getElementById('ncNombre').value, cat: document.getElementById('ncCat').value, tel: document.getElementById('ncTel').value }); location.reload(); }
     async function crearPrsp() { await callAPI('crearProspecto', { nombre: document.getElementById('npNombre').value, tel: document.getElementById('npTel').value, temp: "Frío" }); location.reload(); }
     async function guardarGasto() { const m = document.getElementById('gMonto').value; const n = document.getElementById('gNota').value; if(!m || !n) return alert("Completar campos"); document.getElementById('loader').style.display = 'flex'; await callAPI('registrarGasto', { monto: m, nota: n, medioPago: 'Efectivo' }); modals.gasto.hide(); await loadCaja(); document.getElementById('loader').style.display = 'none'; }
+
+    // --- BUSCADOR DE CLIENTES ---
+    function updateComboClientes() {
+        const results = document.getElementById('clienteResults');
+        results.innerHTML = clientes.map(c => `<div onclick="selectCliente('${c[0]}', '${c[1].replace(/'/g, "\\'")}')">${c[1]}</div>`).join('');
+        document.getElementById('clienteSel').innerHTML = clientes.map(c => `<option value="${c[0]}">${c[1]}</option>`).join('');
+    }
+
+    function filterClientes() {
+        const text = document.getElementById('clienteSearch').value.toLowerCase();
+        const results = document.getElementById('clienteResults');
+        results.classList.remove('hidden');
+        const filtered = clientes.filter(c => c[1].toLowerCase().includes(text));
+        results.innerHTML = filtered.map(c => `<div onclick="selectCliente('${c[0]}', '${c[1].replace(/'/g, "\\'")}')">${c[1]}</div>`).join('');
+        if (filtered.length === 0) results.innerHTML = '<div class="text-muted p-2">No se encontraron resultados</div>';
+    }
+
+    function showClientes() { document.getElementById('clienteResults').classList.remove('hidden'); }
+
+    function selectCliente(id, nombre) {
+        document.getElementById('clienteSearch').value = nombre;
+        document.getElementById('clienteSel').value = id;
+        document.getElementById('clienteResults').classList.add('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-container')) {
+            document.getElementById('clienteResults').classList.add('hidden');
+        }
+    });
 </script>
 </body>
 </html>
